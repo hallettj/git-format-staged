@@ -51,7 +51,7 @@ def format_staged_files(command, glob):
         for line in output.splitlines():
             entry = parse_diff(line.decode('utf-8'))
             if format_file_in_index(command, entry):
-                print('Reformatted {} with {}'.format(entry['src_path'], command), file=sys.stderr)
+                print('Reformatted {} with {}'.format(entry['src_path'], ' '.join(command)), file=sys.stderr)
     except Exception as err:
         print(str(err), file=sys.stderr)
         exit(1)
