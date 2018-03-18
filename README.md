@@ -11,8 +11,8 @@ pre-commit hook. The naive way to write that hook would be to:
 - run `git add` to stage the results of formatting
 
 The problem with that solution is it forces you to commit entire files. At
-worst this will lead to contributors to unwittingly commit changes. At best it
-disrupts workflow for contributors who use `git add -p`.
+worst this will lead to contributors to unwittingly committing changes. At best
+it disrupts workflow for contributors who use `git add -p`.
 
 git-format-staged tackles this problem by running the formatter on the staged
 version of the file. Staging changes to a file actually produces a new file
