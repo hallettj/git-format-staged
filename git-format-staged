@@ -1,4 +1,14 @@
 #!/usr/bin/env python
+#
+# Git command to transform staged files according to a command that accepts file
+# content on stdin and produces output on stdout. This command is useful in
+# combination with `git add -p` which allows you to stage specific changes in
+# a file. This command runs a formatter on the file with staged changes while
+# ignoring unstaged changes.
+#
+# Tested with Python 3.6 and Python 2.7.
+#
+# Original author: Jesse Hallett <jesse@sitr.us>
 
 from __future__ import print_function
 import re
@@ -9,7 +19,7 @@ import sys
 def format_staged_files(command, glob):
     output = subprocess.check_output(['git', 'diff-index', '--cached', 'HEAD', glob])
     for line in output.splitlines():
-        entry = parse_diff(line)
+        entry = parse_diff(line.decode('utf-8'))
         if format_file_in_index(command, entry):
             print('Reformatted {} with {}'.format(entry['src_path'], command), file=sys.stderr)
 
@@ -60,7 +70,7 @@ def format_object(command, object_hash):
     if write_object.returncode != 0:
         raise Exception('Error writing formatted content to object database')
 
-    return new_hash.rstrip()
+    return new_hash.decode('utf-8').rstrip()
 
 def replace_file_in_index(diff_entry, new_object_hash):
     subprocess.check_call(['git', 'update-index',
