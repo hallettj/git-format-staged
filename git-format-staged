@@ -6,22 +6,55 @@
 # a file. This command runs a formatter on the file with staged changes while
 # ignoring unstaged changes.
 #
+# Usage: git-format-staged [options] command
+# Example: git-format-staged --glob='*.js' prettier --stdin
+#
 # Tested with Python 3.6 and Python 2.7.
 #
 # Original author: Jesse Hallett <jesse@sitr.us>
+#
+# Consider a project where you want all code formatted consistently. So you use
+# a formatting command. (For example I use [prettier-standard][] in my
+# Javascript projects.) You want to make sure that everyone working on the
+# project runs the formatter, so you use a tool like [husky][] to install a git
+# precommit hook. The naïve way to write that hook would be to:
+#
+# - get a list of staged files
+# - run the formatter on those files
+# - run `git add` to stage the results of formatting
+#
+# The problem with that solution is it forces you to commit entire files. At
+# worst this will lead to contributors to unwittingly commit changes. At best it
+# disrupts workflow for contributors who use `git add -p`.
+#
+# git-format-staged tackles this problem by running the formatter on the staged
+# version of the file. Staging changes to a file actually produces a new file
+# that exists in the git object database. git-format-staged uses some git
+# plumbing commands to feed that file content to your formatter. The command
+# replaces file content in the git index, and does not touch the working copy of
+# the file.
+#
+# [prettier-standard]: https://www.npmjs.com/package/prettier-standard
+# [husky]: https://www.npmjs.com/package/husky
+#
 
 from __future__ import print_function
+import argparse
 import re
 import subprocess
 import sys
 
 # `glob` selects files using a shell glob - e.g. `'*.js'`
 def format_staged_files(command, glob):
-    output = subprocess.check_output(['git', 'diff-index', '--cached', 'HEAD', glob])
-    for line in output.splitlines():
-        entry = parse_diff(line.decode('utf-8'))
-        if format_file_in_index(command, entry):
-            print('Reformatted {} with {}'.format(entry['src_path'], command), file=sys.stderr)
+    try:
+        output = subprocess.check_output(['git', 'diff-index', '--cached', 'HEAD', glob])
+        for line in output.splitlines():
+            entry = parse_diff(line.decode('utf-8'))
+            if format_file_in_index(command, entry):
+                print('Reformatted {} with {}'.format(entry['src_path'], command), file=sys.stderr)
+    except Exception as err:
+        print(str(err), file=sys.stderr)
+        exit(1)
 
 # Run formatter on file in the git index. Creates a new git object with the
 # result, and replaces the content of the file in the index with that object.
@@ -60,7 +93,7 @@ def format_object(command, object_hash):
     format_content.stdout.close()
 
     if get_content.wait() != 0:
-        raise Exception('Error reading file content from object database: ' + object_hash)
+        raise ValueError('Error reading file content from object database: ' + object_hash)
 
     if format_content.wait() != 0:
         raise Exception('Error running formatter') # TODO: capture stderr from format command
@@ -106,4 +139,23 @@ zeroed_pat = re.compile('^0+$')
 def unless_zeroed(s):
     return s if not zeroed_pat.match(s) else None
 
-format_staged_files(command='prettier-standard', glob='*.js')
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+            description='Transform staged files using a formatting command that accepts content via stdin and produces a result via stdout.\nExample: git-format-staged --glob "*.js" prettier --stdin'
+            )
+    parser.add_argument(
+            '--glob',
+            default='*',
+            help='Format files matching this shell glob. (Example: "*.js", default: "*")'
+            )
+    parser.add_argument(
+            'command',
+            nargs=argparse.REMAINDER,
+            help='Shell command to format files, will run once per file. (Example: prettier --stdin)')
+    args = parser.parse_args()
+    glob = vars(args)['glob']
+    command = vars(args)['command']
+    if not command:
+        print('Command is required.', file=sys.stderr)
+        exit(1)
+    format_staged_files(command=command, glob=glob)
