@@ -17,7 +17,7 @@
 # a formatting command. (For example I use [prettier-standard][] in my
 # Javascript projects.) You want to make sure that everyone working on the
 # project runs the formatter, so you use a tool like [husky][] to install a git
-# precommit hook. The naïve way to write that hook would be to:
+# precommit hook. The naive way to write that hook would be to:
 #
 # - get a list of staged files
 # - run the formatter on those files
