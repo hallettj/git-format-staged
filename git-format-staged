@@ -44,6 +44,8 @@ import re
 import subprocess
 import sys
 
+VERSION='1.0.0'
+
 # `glob` selects files using a shell glob - e.g. `'*.js'`
 def format_staged_files(command, glob, update_working_tree=False):
     try:
@@ -189,14 +191,24 @@ if __name__ == '__main__':
             help='Patch working tree to apply formatting changes. Without this option formatting changes are applied to the git index, but not to working tree files.'
             )
     parser.add_argument(
+            '--version', '-v',
+            action='store_true',
+            help='Display version of git-format-staged'
+            )
+    parser.add_argument(
             'command',
             nargs=argparse.REMAINDER,
             help='Shell command to format files, will run once per file. (Example: prettier --stdin)')
     args = parser.parse_args()
     command = vars(args)['command']
+    version = vars(args)['version']
+    if version:
+        print('git-format-staged version {}'.format(VERSION))
+        exit(0)
     if not command:
         print('Command is required.', file=sys.stderr)
         exit(1)
+
     format_staged_files(
             command=command,
             glob=vars(args)['glob'],
