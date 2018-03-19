@@ -81,7 +81,7 @@ def format_file_in_index(command, diff_entry, update_working_tree=False):
             patch_working_file(diff_entry['src_path'], orig_hash, new_hash)
         except Exception as err:
             # Errors patching working tree files are not fatal
-            print(str(err), file=sys.stderr)
+            print('Warning: {}'.format(str(err)), file=sys.stderr)
 
     return new_hash
 
@@ -139,13 +139,14 @@ def patch_working_file(path, orig_object_hash, new_object_hash):
     apply_patch = subprocess.Popen(
             ['git', 'apply', '-'],
             stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
             )
 
     output, err = apply_patch.communicate(input=patch_b)
 
     if apply_patch.returncode != 0:
-        raise Exception('Error applying patch')
+        raise Exception('could not apply formatting changes to working tree file {}'.format(path))
 
 # Format: src_mode dst_mode src_hash dst_hash status/score? src_path dst_path?
 diff_pat = re.compile('^:(\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([A-Z])(\d+)?\t([^\t]+)(?:\t([^\t]+))?$')
