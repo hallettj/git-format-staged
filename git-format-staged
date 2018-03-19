@@ -181,7 +181,7 @@ if __name__ == '__main__':
     parser.add_argument(
             '--glob',
             default='*',
-            help='Format files matching this shell glob. (Example: "*.js", default: "*")'
+            help='Format files matching this shell glob. For example *.js matches all files with the .js extension, or src/*.js matches .js files in src/ or its subdirectories. (Default: "*")'
             )
     parser.add_argument(
             '--update-working-tree',
