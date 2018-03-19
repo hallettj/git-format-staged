@@ -47,7 +47,14 @@ import sys
 # `glob` selects files using a shell glob - e.g. `'*.js'`
 def format_staged_files(command, glob, update_working_tree=False):
     try:
-        output = subprocess.check_output(['git', 'diff-index', '--cached', 'HEAD', glob])
+        output = subprocess.check_output([
+            'git', 'diff-index',
+            '--cached',
+            '--diff-filter=AM', # select only file additions and modifications
+            '--no-renames',
+            'HEAD',
+            glob
+            ])
         for line in output.splitlines():
             entry = parse_diff(line.decode('utf-8'))
             if format_file_in_index(command, entry, update_working_tree=update_working_tree):
