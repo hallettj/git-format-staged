@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Git command to transform staged files according to a command that accepts file content on stdin and produces output on stdout.",
   "scripts": {
+    "precommit": "./git-format-staged --glob '*.js' prettier-standard",
     "commitmsg": "commitlint -e $GIT_PARAMS",
     "test": "ava"
   },
