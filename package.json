@@ -6,6 +6,7 @@
     "test": "ava"
   },
   "bin": "./git-format-staged",
+  "main": "./no-main.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/hallettj/git-format-staged.git"
