@@ -25,3 +25,5 @@ jobs:
         script:
           - nvm install v10
           - npm run semantic-release
+        on:
+          all_branches: true
