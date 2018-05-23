@@ -10,6 +10,9 @@ pre-commit hook. The naive way to write that hook would be to:
 - run the formatter on those files
 - run `git add` to stage the results of formatting
 
+[prettier-standard]: https://www.npmjs.com/package/prettier-standard
+[husky]: https://www.npmjs.com/package/husky
+
 The problem with that solution is it forces you to commit entire files. At
 worst this will lead to contributors to unwittingly committing changes. At best
 it disrupts workflow for contributors who use `git add -p`.
@@ -31,5 +34,15 @@ and applies the patch to the working tree. Rejected patches are not fatal
 errors: git-format-patch will succeed, but will leave working tree files
 unchanged.
 
-[prettier-standard]: https://www.npmjs.com/package/prettier-standard
-[husky]: https://www.npmjs.com/package/husky
+## How to install
+
+Requires Python version 3 or 2.7.
+
+Run:
+
+    $ npm install --global git-format-staged
+
+Or you can copy the [`git-format-staged`](./git-format-staged) script from this
+repository and place it in your executable path. The script is MIT-licensed -
+so you can check the script into version control in your own open source
+project if you wish.
