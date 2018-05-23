@@ -22,8 +22,6 @@ jobs:
       deploy:
         provider: script
         skip_cleanup: true
-        script:
-          - nvm install v10
-          - npm run semantic-release
+        script: "npm run semantic-release"
         on:
           all_branches: true
