@@ -1,0 +1,48 @@
+{
+  "name": "git-format-staged",
+  "version": "1.0.0",
+  "description": "Git command to transform staged files according to a command that accepts file content on stdin and produces output on stdout.",
+  "scripts": {
+    "test": "ava"
+  },
+  "bin": "./git-format-staged",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hallettj/git-format-staged.git"
+  },
+  "keywords": [
+    "git",
+    "hook"
+  ],
+  "author": "Jesse Hallett <jesse@sitr.us>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hallettj/git-format-staged/issues"
+  },
+  "homepage": "https://github.com/hallettj/git-format-staged#readme",
+  "files": [
+    "git-format-staged"
+  ],
+  "devDependencies": {
+    "@babel/plugin-transform-flow-strip-types": "^7.0.0-beta.46",
+    "ava": "^1.0.0-beta.4",
+    "flow-bin": "^0.72.0",
+    "fs-extra": "^6.0.1",
+    "prettier-standard": "^8.0.1",
+    "strip-indent": "^2.0.0",
+    "tmp": "0.0.33"
+  },
+  "ava": {
+    "babel": {
+      "testOptions": {
+        "plugins": [
+          "@babel/plugin-transform-flow-strip-types"
+        ]
+      }
+    },
+    "color": false,
+    "files": [
+      "test/**/*_test.js"
+    ]
+  }
+}
