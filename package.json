@@ -1,11 +1,13 @@
 {
   "name": "git-format-staged",
-  "version": "1.0.0",
+  "version": "0.0.0-development",
   "description": "Git command to transform staged files according to a command that accepts file content on stdin and produces output on stdout.",
   "scripts": {
     "precommit": "./git-format-staged --glob '*.js' prettier-standard",
     "commitmsg": "commitlint -e $GIT_PARAMS",
-    "test": "ava"
+    "test": "ava",
+    "prepublishOnly": "sed -i \"s/\\$VERSION/$npm_package_version/\" git-format-staged",
+    "semantic-release": "semantic-release"
   },
   "bin": "./git-format-staged",
   "main": "./no-main.js",
@@ -26,6 +28,9 @@
   "files": [
     "git-format-staged"
   ],
+  "release": {
+    "branch": "master"
+  },
   "devDependencies": {
     "@babel/plugin-transform-flow-strip-types": "^7.0.0-beta.46",
     "@commitlint/cli": "^6.2.0",
@@ -35,6 +40,7 @@
     "fs-extra": "^6.0.1",
     "husky": "^0.14.3",
     "prettier-standard": "^8.0.1",
+    "semantic-release": "^15.5.0",
     "strip-indent": "^2.0.0",
     "tmp": "0.0.33"
   },

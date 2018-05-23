@@ -42,9 +42,9 @@ test('configures committer email', async t => {
 test('displays version information', async t => {
   const r = repo(t)
   const { stdout: a } = await formatStaged(r, '--version')
-  t.regex(a, / 1\.\d+\.\d+/)
+  t.regex(a, / version \S+/)
   const { stdout: b } = await formatStaged(r, '-v')
-  t.regex(b, / 1\.\d+\.\d+/)
+  t.regex(b, / version \S+/)
 })
 
 test('displays help information', async t => {

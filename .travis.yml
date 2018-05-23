@@ -1,0 +1,27 @@
+language: python
+python:
+  - 2.7
+  - 3.6
+
+cache:
+  directories:
+    - ~/.npm
+
+before_install:
+  - nvm install v10
+
+install:
+  - npm install
+
+script:
+  - npm test
+
+jobs:
+  include:
+    - stage: release
+      deploy:
+        provider: script
+        skip_cleanup: true
+        script:
+          - nvm install v10
+          - npm run semantic-release
