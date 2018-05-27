@@ -6,72 +6,60 @@
 # a file. This command runs a formatter on the file with staged changes while
 # ignoring unstaged changes.
 #
-# Usage: git-format-staged [options] command
-# Example: git-format-staged --glob='*.js' prettier --stdin
+# Usage: git-format-staged [OPTION]... [FILE]...
+# Example: git-format-staged --formatter 'prettier --stdin' src/**/*.js
 #
 # Tested with Python 3.6 and Python 2.7.
 #
 # Original author: Jesse Hallett <jesse@sitr.us>
-#
-# Consider a project where you want all code formatted consistently. So you use
-# a formatting command. (For example I use [prettier-standard][] in my
-# Javascript projects.) You want to make sure that everyone working on the
-# project runs the formatter, so you use a tool like [husky][] to install a git
-# precommit hook. The naive way to write that hook would be to:
-#
-# - get a list of staged files
-# - run the formatter on those files
-# - run `git add` to stage the results of formatting
-#
-# The problem with that solution is it forces you to commit entire files. At
-# worst this will lead to contributors to unwittingly committing changes. At
-# best it disrupts workflow for contributors who use `git add -p`.
-#
-# git-format-staged tackles this problem by running the formatter on the staged
-# version of the file. Staging changes to a file actually produces a new file
-# that exists in the git object database. git-format-staged uses some git
-# plumbing commands to feed that file content to your formatter. The command
-# replaces file content in the git index, and does not touch the working copy of
-# the file.
-#
-# [prettier-standard]: https://www.npmjs.com/package/prettier-standard
-# [husky]: https://www.npmjs.com/package/husky
-#
 
 from __future__ import print_function
 import argparse
+from gettext import gettext as _
+import os
 import re
 import subprocess
 import sys
 
 # The string $VERSION is replaced during the publish process.
-VERSION='$VERSION'
+VERSION = '$VERSION'
+PROG = sys.argv[0]
 
-# `glob` selects files using a shell glob - e.g. `'*.js'`
-def format_staged_files(command, glob, update_working_tree=False):
+def info(msg):
+    print(msg, file=sys.stderr)
+
+def warn(msg):
+    print('{}: warning: {}'.format(PROG, msg), file=sys.stderr)
+
+def fatal(msg):
+    print('{}: error: {}'.format(PROG, msg), file=sys.stderr)
+    exit(1)
+
+def format_staged_files(files, formatter, git_root, update_working_tree=False):
     try:
         output = subprocess.check_output([
             'git', 'diff-index',
             '--cached',
             '--diff-filter=AM', # select only file additions and modifications
             '--no-renames',
-            'HEAD',
-            glob
+            'HEAD'
             ])
         for line in output.splitlines():
             entry = parse_diff(line.decode('utf-8'))
-            if format_file_in_index(command, entry, update_working_tree=update_working_tree):
-                print('Reformatted {} with {}'.format(entry['src_path'], ' '.join(command)), file=sys.stderr)
+            entry_path = normalize_path(entry['src_path'], relative_to=git_root)
+            if not (entry_path in files):
+                continue
+            if format_file_in_index(formatter, entry, update_working_tree=update_working_tree):
+                info('Reformatted {} with {}'.format(entry['src_path'], formatter))
     except Exception as err:
-        print(str(err), file=sys.stderr)
-        exit(1)
+        fatal(str(err))
 
 # Run formatter on file in the git index. Creates a new git object with the
 # result, and replaces the content of the file in the index with that object.
 # Returns hash of the new object if formatting produced any changes.
-def format_file_in_index(command, diff_entry, update_working_tree=False):
+def format_file_in_index(formatter, diff_entry, update_working_tree=False):
     orig_hash = diff_entry['dst_hash']
-    new_hash = format_object(command, orig_hash)
+    new_hash = format_object(formatter, orig_hash)
 
     # If the new hash is the same then the formatter did not make any changes.
     if new_hash == orig_hash:
@@ -84,20 +72,21 @@ def format_file_in_index(command, diff_entry, update_working_tree=False):
             patch_working_file(diff_entry['src_path'], orig_hash, new_hash)
         except Exception as err:
             # Errors patching working tree files are not fatal
-            print('Warning: {}'.format(str(err)), file=sys.stderr)
+            warn(str(err))
 
     return new_hash
 
 
 # Run formatter on a git blob identified by its hash. Writes output to a new git
 # blob, and returns the hash of the new blob.
-def format_object(command, object_hash):
+def format_object(formatter, object_hash):
     get_content = subprocess.Popen(
             ['git', 'cat-file', '-p', object_hash],
             stdout=subprocess.PIPE
             )
     format_content = subprocess.Popen(
-            command,
+            formatter,
+            shell=True,
             stdin=get_content.stdout,
             stdout=subprocess.PIPE
             )
@@ -111,15 +100,15 @@ def format_object(command, object_hash):
     format_content.stdout.close()
 
     if get_content.wait() != 0:
-        raise ValueError('Error reading file content from object database: ' + object_hash)
+        raise ValueError('unable to read file content from object database: ' + object_hash)
 
     if format_content.wait() != 0:
-        raise Exception('Error running formatter') # TODO: capture stderr from format command
+        raise Exception('formatter exited with non-zero status') # TODO: capture stderr from format command
 
     new_hash, err = write_object.communicate()
 
     if write_object.returncode != 0:
-        raise Exception('Error writing formatted content to object database')
+        raise Exception('unable to write formatted content to object database')
 
     return new_hash.decode('utf-8').rstrip()
 
@@ -177,41 +166,66 @@ zeroed_pat = re.compile('^0+$')
 def unless_zeroed(s):
     return s if not zeroed_pat.match(s) else None
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-            description='Transform staged files using a formatting command that accepts content via stdin and produces a result via stdout.\nExample: git-format-staged --glob "*.js" prettier --stdin'
-            )
-    parser.add_argument(
-            '--glob',
-            default='*',
-            help='Format files matching this shell glob. For example *.js matches all files with the .js extension, or src/*.js matches .js files in src/ or its subdirectories. (Default: "*")'
-            )
-    parser.add_argument(
-            '--update-working-tree',
-            action='store_true',
-            help='Patch working tree to apply formatting changes. Without this option formatting changes are applied to the git index, but not to working tree files.'
-            )
-    parser.add_argument(
-            '--version', '-v',
-            action='store_true',
-            help='Display version of git-format-staged'
-            )
-    parser.add_argument(
-            'command',
-            nargs=argparse.REMAINDER,
-            help='Shell command to format files, will run once per file. (Example: prettier --stdin)')
-    args = parser.parse_args()
-    command = vars(args)['command']
-    version = vars(args)['version']
-    if version:
-        print('git-format-staged version {}'.format(VERSION))
-        exit(0)
-    if not command:
-        print('Command is required.', file=sys.stderr)
-        exit(1)
+def get_git_root():
+    return subprocess.check_output(
+            ['git', 'rev-parse', '--show-toplevel']
+            ).decode('utf-8').rstrip()
 
+def normalize_paths(paths, relative_to=None):
+    return [normalize_path(p, relative_to) for p in paths]
+
+def normalize_path(p, relative_to=None):
+    return os.path.abspath(
+            os.path.join(relative_to, p) if relative_to else p
+            )
+
+def validate_files(files):
+    for file in files:
+        if not os.path.isfile(file):
+            fatal('"%s" is not a file in the git repository. Do you need to quote your formatter command?' % file)
+
+class CustomArgumentParser(argparse.ArgumentParser):
+    def parse_args(self, args=None, namespace=None):
+        args, argv = self.parse_known_args(args, namespace)
+        if argv:
+            msg = argparse._(
+                    'unrecognized arguments: %s. Do you need to quote your formatter command?'
+                    )
+            self.error(msg % ' '.join(argv))
+        return args
+
+if __name__ == '__main__':
+    parser = CustomArgumentParser(
+            description='Transform staged files using a formatting command that accepts content via stdin and produces a result via stdout.',
+            epilog='Example: %(prog)s --formatter "prettier --stdin" src/**/*.js test/**/*.js'
+            )
+    parser.add_argument(
+            '--formatter', '-f',
+            required=True,
+            help='Shell command to format files, will run once per file. (Example: "prettier --stdin")'
+            )
+    parser.add_argument(
+            '--no-update-working-tree',
+            action='store_true',
+            help='By default formatting changes made to staged file content will also be applied to working tree files via a patch. This option disables that behavior, leaving working tree files untouched.'
+            )
+    parser.add_argument(
+            '--version',
+            action='version',
+            version='%(prog)s version {}'.format(VERSION),
+            help='Display version of %(prog)s'
+            )
+    parser.add_argument(
+            'files',
+            nargs='+',
+            help='Files to format. The formatter will only transform staged files that are named here. (Example: src/**/*.js test/**/*.js)'
+            )
+    args = parser.parse_args()
+    files = vars(args)['files']
+    validate_files(files)
     format_staged_files(
-            command=command,
-            glob=vars(args)['glob'],
-            update_working_tree=vars(args)['update_working_tree']
+            files=normalize_paths(files),
+            formatter=vars(args)['formatter'],
+            git_root=get_git_root(),
+            update_working_tree=not vars(args)['no_update_working_tree']
             )

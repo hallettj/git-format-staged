@@ -2,7 +2,7 @@
 
 import { type ChildProcess, spawn } from 'child_process'
 import * as fs from 'fs-extra'
-import { join, resolve } from 'path'
+import { dirname, join, resolve } from 'path'
 import * as tmp from 'tmp'
 
 export type Result = {
@@ -32,6 +32,10 @@ export function cleanup (repo: Repo) {
   repo.cleanup()
 }
 
+export function subdir(repo: Repo, path: Path): Repo {
+  return { ...repo, path: repoPath(repo, path) }
+}
+
 export async function git (repo: Repo, ...args: string[]): Promise<Result> {
   return run('git', args, { cwd: repo.path })
 }
@@ -41,6 +45,13 @@ export async function formatStaged (
   args: string // space-separated arguments, interpreted by shell
 ): Promise<Result> {
   return run([BIN, args].join(' '), [], { cwd: repo.path, shell: true })
+}
+
+export async function formatStagedCaptureError (
+  repo: Repo,
+  args: string // space-separated arguments, interpreted by shell
+): Promise<Result> {
+  return runCommand([BIN, args].join(' '), [], { cwd: repo.path, shell: true })
 }
 
 export async function formatted (
@@ -68,6 +79,8 @@ export async function fileInTree (
   filename: Path,
   content: string
 ): Promise<void> {
+  const dir = dirname(filename)
+  await fs.mkdirp(repoPath(repo, dir))
   await setContent(repo, filename, content)
   await git(repo, 'add', filename)
   await git(repo, 'commit', '-m', `commit ${filename}`)
@@ -101,7 +114,7 @@ export async function setContent (
   filename: Path,
   content: string
 ): Promise<void> {
-  const c = content.endsWith("\n") ? content : content + "\n"
+  const c = content.endsWith('\n') ? content : content + '\n'
   await fs.writeFile(repoPath(repo, filename), c)
 }
 

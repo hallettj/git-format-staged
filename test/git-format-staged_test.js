@@ -7,12 +7,14 @@ import {
   cleanup,
   fileInTree,
   formatStaged,
+  formatStagedCaptureError,
   formatted,
   getContent,
   getStagedContent,
   git,
   setContent,
   stage,
+  subdir,
   testRepo
 } from './helpers/git'
 
@@ -41,10 +43,10 @@ test('configures committer email', async t => {
 
 test('displays version information', async t => {
   const r = repo(t)
-  const { stdout: a } = await formatStaged(r, '--version')
-  t.regex(a, / version \S+/)
-  const { stdout: b } = await formatStaged(r, '-v')
-  t.regex(b, / version \S+/)
+  const { stdout, stderr } = await formatStaged(r, '--version')
+  // Python 2 prints version to stderr, Python 3 prints to stdout. See:
+  // https://bugs.python.org/issue18920
+  t.regex(stdout + stderr, / version \S+/)
 })
 
 test('displays help information', async t => {
@@ -66,7 +68,7 @@ test('formats a file', async t => {
     `
   )
   await stage(r, 'index.js')
-  await formatStaged(r, '--glob "*.js" prettier-standard')
+  await formatStaged(r, '--formatter prettier-standard *.js')
   contentIs(
     t,
     await getStagedContent(r, 'index.js'),
@@ -76,6 +78,91 @@ test('formats a file', async t => {
     }
     function bar () {
       return 'bar'
+    }
+    `
+  )
+})
+
+test('fails if no formatter command is given', async t => {
+  const r = repo(t)
+  const { exitCode, stderr } = await formatStagedCaptureError(r, '*.js')
+  t.true(exitCode > 0)
+  t.regex(stderr, /argument --formatter\/-f is required/)
+})
+
+test('fails if formatter command is not quoted', async t => {
+  const r = repo(t)
+  const { exitCode, stderr } = await formatStagedCaptureError(
+    r,
+    '-f prettier --stdin *.js'
+  )
+  t.true(exitCode > 0)
+  t.regex(stderr, /unrecognized arguments: --stdin/)
+  t.regex(stderr, /Do you need to quote your formatter command\?/)
+})
+
+test('reports descriptive error if formatter command is not found', async t => {
+  const r = repo(t)
+  await setContent(
+    r,
+    'index.js',
+    `
+    function foo() { return 'foo' }
+    function bar(  ) {return 'bar'}
+    `
+  )
+  await stage(r, 'index.js')
+  const { exitCode, stderr } = await formatStagedCaptureError(
+    r,
+    '-f imaginaryformatter *.js'
+  )
+  t.true(exitCode > 0)
+  t.regex(stderr, /imaginaryformatter: not found/)
+})
+
+test('fails if no files are given', async t => {
+  const r = repo(t)
+  const { exitCode, stderr } = await formatStagedCaptureError(
+    r,
+    '-f prettier-standard'
+  )
+  t.true(exitCode > 0)
+  t.regex(stderr, /too few arguments/)
+})
+
+test('fails if shell cannot expand glob', async t => {
+  const r = repo(t)
+  const { exitCode, stderr } = await formatStagedCaptureError(
+    r,
+    '-f prettier-standard *.jx'
+  )
+  t.true(exitCode > 0)
+  t.regex(stderr, /"\*\.jx" is not a file in the git repository/)
+})
+
+test('fails if a given file cannot be found in the repo', async t => {
+  const r = repo(t)
+  const { exitCode, stderr } = await formatStagedCaptureError(
+    r,
+    '-f prettier-standard notthere.js'
+  )
+  t.true(exitCode > 0)
+  t.regex(stderr, /"notthere\.js" is not a file in the git repository/)
+  t.regex(stderr, /Do you need to quote your formatter command\?/)
+})
+
+test('can be run in a subdirectory', async t => {
+  const r = repo(t)
+  await fileInTree(r, 'test/testIndex.js', 'function test () {}')
+  await setContent(r, 'test/testIndex.js', 'function test() { return true; }')
+  await stage(r, 'test/testIndex.js')
+  await formatStaged(subdir(r, 'test'), '-f prettier-standard *.js')
+  contentIs(
+    t,
+    await getContent(r, 'test/testIndex.js'),
+    `
+    function test () {
+      return true
     }
     `
   )
@@ -92,7 +179,7 @@ test('displays a message if a file was changed', async t => {
     `
   )
   await stage(r, 'index.js')
-  const { stderr } = await formatStaged(r, '--glob "*.js" prettier-standard')
+  const { stderr } = await formatStaged(r, '-f prettier-standard *.js')
   t.regex(stderr, /Reformatted index\.js with prettier-standard/)
 })
 
@@ -114,11 +201,11 @@ test('does not display a message if formatting did not produce any changes', asy
     )
   )
   await stage(r, 'index.js')
-  const { stderr } = await formatStaged(r, '--glob "*.js" prettier-standard')
+  const { stderr } = await formatStaged(r, '-f prettier-standard *.js')
   t.is(stderr, '')
 })
 
-test('does not merge changes back to working tree by default', async t => {
+test('merges formatting changes back to working by default', async t => {
   const r = repo(t)
   await setContent(
     r,
@@ -129,29 +216,7 @@ test('does not merge changes back to working tree by default', async t => {
     `
   )
   await stage(r, 'index.js')
-  await formatStaged(r, '--glob "*.js" prettier-standard')
-  contentIs(
-    t,
-    await getContent(r, 'index.js'),
-    `
-    function foo() { return 'foo' }
-    function bar(  ) {return 'bar'}
-    `
-  )
-})
-
-test('merges formatting changes back to working tree if requested', async t => {
-  const r = repo(t)
-  await setContent(
-    r,
-    'index.js',
-    `
-    function foo() { return 'foo' }
-    function bar(  ) {return 'bar'}
-    `
-  )
-  await stage(r, 'index.js')
-  await formatStaged(r, '--glob "*.js" --update-working-tree prettier-standard')
+  await formatStaged(r, '-f prettier-standard *.js')
   contentIs(
     t,
     await getContent(r, 'index.js'),
@@ -162,6 +227,28 @@ test('merges formatting changes back to working tree if requested', async t => {
     function bar () {
       return 'bar'
     }
+    `
+  )
+})
+
+test('optionally does not merge changes back to working tree', async t => {
+  const r = repo(t)
+  await setContent(
+    r,
+    'index.js',
+    `
+    function foo() { return 'foo' }
+    function bar(  ) {return 'bar'}
+    `
+  )
+  await stage(r, 'index.js')
+  await formatStaged(r, '-f prettier-standard --no-update-working-tree *.js')
+  contentIs(
+    t,
+    await getContent(r, 'index.js'),
+    `
+    function foo() { return 'foo' }
+    function bar(  ) {return 'bar'}
     `
   )
 })
@@ -205,7 +292,7 @@ test('preserves unstaged changes when merging formatting to working tree', async
     )
   )
 
-  await formatStaged(r, '--glob "*.js" --update-working-tree prettier-standard')
+  await formatStaged(r, '-f prettier-standard *.js')
   contentIs(
     t,
     await getStagedContent(r, 'index.js'),
@@ -262,13 +349,10 @@ test('succeeds with a warning if changes cannot be cleanly merged back to workin
     `
   )
 
-  const { stderr } = await formatStaged(
-    r,
-    '--glob "*.js" --update-working-tree prettier-standard'
-  )
+  const { stderr } = await formatStaged(r, '-f prettier-standard *.js')
   t.regex(
     stderr,
-    /Warning: could not apply formatting changes to working tree file index\.js/
+    /warning: could not apply formatting changes to working tree file index\.js/
   )
   contentIs(
     t,
@@ -289,6 +373,23 @@ test('succeeds with a warning if changes cannot be cleanly merged back to workin
     }
     `
   )
+})
+
+test('ignores files that are not listed on command line', async t => {
+  const r = repo(t)
+  await fileInTree(r, 'README.md', '# Test Project')
+  const readmeContent = `
+    # Test project
+
+    Includes code like this
+    `
+  await setContent(r, 'README.md', readmeContent)
+  await stage(r, 'README.md')
+
+  // The formatter would exit with an error if it attempted to format README.md
+  await formatStaged(r, '-f prettier-standard *.js')
+
+  contentIs(t, await getStagedContent(r, 'README.md'), readmeContent)
 })
 
 function contentIs (t: ExecutionContext<>, actual: string, expected: string) {
