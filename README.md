@@ -4,7 +4,7 @@ Consider a project where you want all code formatted consistently. So you use
 a formatting command. (For example I use [prettier-standard][] in my
 Javascript projects.) You want to make sure that everyone working on the
 project runs the formatter, so you use a tool like [husky][] to install a git
-precommit hook. The naive way to write that hook would be to:
+pre-commit hook. The naive way to write that hook would be to:
 
 - get a list of staged files
 - run the formatter on those files
@@ -17,7 +17,7 @@ best it disrupts workflow for contributors who use `git add -p`.
 git-format-staged tackles this problem by running the formatter on the staged
 version of the file. Staging changes to a file actually produces a new file
 that exists in the git object database. git-format-staged uses some git
-plumbing commands to content from that file to your formatter. The command
+plumbing commands to send content from that file to your formatter. The command
 replaces file content in the git index. The process bypasses the working tree,
 so any unstaged changes are ignored by the formatter, and remain unstaged.
 
@@ -36,11 +36,66 @@ patch step can be disabled with the `--no-update-working-tree` option.
 
 Requires Python version 3 or 2.7.
 
-Run:
+Install as a development dependency in a project that uses npm packages:
+
+    $ npm install --save-dev git-format-staged
+
+Or install globally:
 
     $ npm install --global git-format-staged
 
-Or you can copy the [`git-format-staged`](./git-format-staged) script from this
-repository and place it in your executable path. The script is MIT-licensed -
-so you can check the script into version control in your own open source
-project if you wish.
+If you do not use npm you can copy the
+[`git-format-staged`](./git-format-staged) script from this repository and
+place it in your executable path. The script is MIT-licensed - so you can check
+the script into version control in your own open source project if you wish.
+
+
+## How to use
+
+For detailed information run:
+
+    $ git-format-staged --help
+
+The command expects a shell command to run a formatter, and one or more file
+patterns to identify which files should be formatted. For example:
+
+    $ git-format-staged --formatter 'prettier --stdin' 'src/*.js'
+
+That will format all files under `src/` and its subdirectories using
+`prettier`. The file pattern is tested against staged files using Python's
+[`fnmatch`][] function: each `*` will match nested directories in addition to
+file names.
+
+[`fnmatch`]: https://docs.python.org/3/library/fnmatch.html#fnmatch.fnmatch
+
+Note that both the formatter command and the file pattern are quoted. If you
+prefer you may let your shell expand a file glob for you. This command is
+equivalent if your shell supports [globstar][] notation:
+
+    $ git-format-staged --formatter 'prettier --stdin' src/**/*.js
+
+Zsh supports globstar by default. Bash only supports globstar if a certain
+shell option is set. Do not rely on globstar in npm scripts!
+
+[globstar]: https://www.linuxjournal.com/content/globstar-new-bash-globbing-option
+
+### Set up a pre-commit hook with Husky
+
+Follow these steps to automatically format all Javascript files on commit in
+a project that uses npm.
+
+Install git-format-staged, husky, and a formatter (I use prettier-standard):
+
+    $ npm install --save-dev git-format-staged husky prettier-standard
+
+Add a `"precommit"` script in `package.json`:
+
+    "scripts": {
+      "precommit": "git-format-staged -f prettier-standard '*.js'"
+    }
+
+Once again note that the `'*.js'` pattern is quoted! If the formatter command
+included arguments it would also need to be quoted.
+
+That's it! Whenever a file is changed as a result of formatting on commit you
+will see a message in the output from `git commit`.

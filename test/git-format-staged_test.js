@@ -87,7 +87,12 @@ test('fails if no formatter command is given', async t => {
   const r = repo(t)
   const { exitCode, stderr } = await formatStagedCaptureError(r, '*.js')
   t.true(exitCode > 0)
-  t.regex(stderr, /argument --formatter\/-f is required/)
+  // The versions of argparse in Python 2 and Python 3 format this error message
+  // differently.
+  t.regex(
+    stderr,
+    /argument --formatter\/-f is required|the following arguments are required: --formatter\/-f/
+  )
 })
 
 test('fails if formatter command is not quoted', async t => {
@@ -127,28 +132,12 @@ test('fails if no files are given', async t => {
     '-f prettier-standard'
   )
   t.true(exitCode > 0)
-  t.regex(stderr, /too few arguments/)
-})
-
-test('fails if shell cannot expand glob', async t => {
-  const r = repo(t)
-  const { exitCode, stderr } = await formatStagedCaptureError(
-    r,
-    '-f prettier-standard *.jx'
+  // The versions of argparse in Python 2 and Python 3 format this error message
+  // differently.
+  t.regex(
+    stderr,
+    /too few arguments|the following arguments are required: files/
   )
-  t.true(exitCode > 0)
-  t.regex(stderr, /"\*\.jx" is not a file in the git repository/)
-})
-
-test('fails if a given file cannot be found in the repo', async t => {
-  const r = repo(t)
-  const { exitCode, stderr } = await formatStagedCaptureError(
-    r,
-    '-f prettier-standard notthere.js'
-  )
-  t.true(exitCode > 0)
-  t.regex(stderr, /"notthere\.js" is not a file in the git repository/)
-  t.regex(stderr, /Do you need to quote your formatter command\?/)
 })
 
 test('can be run in a subdirectory', async t => {
@@ -165,6 +154,28 @@ test('can be run in a subdirectory', async t => {
       return true
     }
     `
+  )
+})
+
+test('expands globs', async t => {
+  const r = repo(t)
+
+  await fileInTree(r, 'test/index.js', '')
+  await setContent(r, 'test/index.js', 'function test() {  }')
+
+  await fileInTree(r, 'test/helpers/index.js', '')
+  await setContent(r, 'test/helpers/index.js', 'function test() {  }')
+
+  await stage(r, 'test/index.js')
+  await stage(r, 'test/helpers/index.js')
+
+  await formatStaged(r, '-f prettier-standard "test/*.js"')
+
+  contentIs(t, await getContent(r, 'test/index.js'), 'function test () {}')
+  contentIs(
+    t,
+    await getContent(r, 'test/helpers/index.js'),
+    'function test () {}'
   )
 })
 
