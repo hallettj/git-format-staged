@@ -68,9 +68,12 @@ file names.
 
 [`fnmatch`]: https://docs.python.org/3/library/fnmatch.html#fnmatch.fnmatch
 
-Note that both the formatter command and the file pattern are quoted. If you
-prefer you may let your shell expand a file glob for you. This command is
-equivalent if your shell supports [globstar][] notation:
+The formatter command must read file content from `stdin`, and output formatted
+content to `stdout`.
+
+Note that both the formatter command and the file pattern
+are quoted. If you prefer you may let your shell expand a file glob for you.
+This command is equivalent if your shell supports [globstar][] notation:
 
     $ git-format-staged --formatter 'prettier --stdin' src/**/*.js
 
@@ -78,6 +81,23 @@ Zsh supports globstar by default. Bash only supports globstar if a certain
 shell option is set. Do not rely on globstar in npm scripts!
 
 [globstar]: https://www.linuxjournal.com/content/globstar-new-bash-globbing-option
+
+### Check staged changes with a linter without formatting
+
+Perhaps you do not want to reformat files automatically; but you do want to
+prevent files from being committed if they do not conform to style rules. You
+can use git-format-staged with the `--no-write` option, and supply a lint
+command instead of a format command. Here is an example using ESLint:
+
+    $ git-format-staged --no-write -f 'eslint --stdin >&2' 'src/*.js'
+
+If this command is run in a pre-commit hook, and the lint command fails the
+commit will be aborted and error messages will be displayed. The lint command
+must read file content via `stdin`. Anything that the lint command outputs to
+`stdout` will be ignored. In the example above `eslint` is given the `--stdin`
+option to tell it to read content from `stdin` instead of reading files from
+disk, and messages from `eslint` are redirected to `stderr` (using the `>&2`
+notation) so that you can see them.
 
 ### Set up a pre-commit hook with Husky
 

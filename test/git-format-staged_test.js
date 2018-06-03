@@ -83,6 +83,18 @@ test('formats a file', async t => {
   )
 })
 
+test('fails with non-zero exit status if formatter fails', async t => {
+  const r = repo(t)
+  await setContent(r, 'index.js', 'function foo{} ( return "foo" )')
+  await stage(r, 'index.js')
+  const { exitCode, stderr } = await formatStagedCaptureError(
+    r,
+    '-f prettier-standard "*.js"'
+  )
+  t.true(exitCode > 0)
+  t.regex(stderr, /SyntaxError: Unexpected token/)
+})
+
 test('fails if no formatter command is given', async t => {
   const r = repo(t)
   const { exitCode, stderr } = await formatStagedCaptureError(r, '*.js')
@@ -401,6 +413,42 @@ test('ignores files that are not listed on command line', async t => {
   await formatStaged(r, '-f prettier-standard *.js')
 
   contentIs(t, await getStagedContent(r, 'README.md'), readmeContent)
+})
+
+test('does not write changes if `--no-write` option is set', async t => {
+  const r = repo(t)
+  await setContent(r, 'index.js', `function foo() { return "foo"; }`)
+  await stage(r, 'index.js')
+  await formatStaged(r, '--no-write -f prettier-standard "*.js"')
+  contentIs(
+    t,
+    await getStagedContent(r, 'index.js'),
+    `function foo() { return "foo"; }`
+  )
+})
+
+test('fails with non-zero exit status if formatter fails and `--no-write` is set', async t => {
+  const r = repo(t)
+  await setContent(r, 'index.js', 'function foo{} ( return "foo" )')
+  await stage(r, 'index.js')
+  const { exitCode, stderr } = await formatStagedCaptureError(
+    r,
+    '--no-write -f prettier-standard "*.js"'
+  )
+  t.true(exitCode > 0)
+  t.regex(stderr, /SyntaxError: Unexpected token/)
+})
+
+test('messages from formatter command can be redirected to stderr', async t => {
+  const r = repo(t)
+  await setContent(r, 'index.js', 'function foo{} ( return "foo" )')
+  await stage(r, 'index.js')
+  const { exitCode, stderr } = await formatStagedCaptureError(
+    r,
+    '--no-write -f "eslint --stdin --no-eslintrc >&2" "*.js"'
+  )
+  t.true(exitCode > 0)
+  t.regex(stderr, /Parsing error: Unexpected token/)
 })
 
 function contentIs (t: ExecutionContext<>, actual: string, expected: string) {
