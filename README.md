@@ -1,5 +1,7 @@
 # git-format-staged
 
+[![Build Status](https://travis-ci.org/hallettj/git-format-staged.svg?branch=master)](https://travis-ci.org/hallettj/git-format-staged)
+
 Consider a project where you want all code formatted consistently. So you use
 a formatting command. (For example I use [prettier-standard][] in my
 Javascript projects.) You want to make sure that everyone working on the
