@@ -73,16 +73,16 @@ file names.
 The formatter command must read file content from `stdin`, and output formatted
 content to `stdout`.
 
-Note that both the formatter command and the file pattern
-are quoted. If you prefer you may let your shell expand a file glob for you.
-This command is equivalent if your shell supports [globstar][] notation:
+Files can be excluded by prefixing a pattern with `!`. For example:
 
-    $ git-format-staged --formatter 'prettier --stdin' src/**/*.js
+    $ git-format-staged --formatter 'prettier --stdin' '*.js' '!flow-typed/*'
 
-Zsh supports globstar by default. Bash only supports globstar if a certain
-shell option is set. Do not rely on globstar in npm scripts!
+Patterns are evaluated from left-to-right: if a file matches multiple patterns
+the right-most pattern determines whether the file is included or excluded.
 
-[globstar]: https://www.linuxjournal.com/content/globstar-new-bash-globbing-option
+git-format-staged never operates on files that are excluded from version
+control. So it is not necessary to explicitly exclude stuff like
+`node_modules/`.
 
 ### Check staged changes with a linter without formatting
 

@@ -15,7 +15,7 @@
 
 from __future__ import print_function
 import argparse
-import fnmatch
+from fnmatch import fnmatch
 from gettext import gettext as _
 import os
 import re
@@ -36,7 +36,7 @@ def fatal(msg):
     print('{}: error: {}'.format(PROG, msg), file=sys.stderr)
     exit(1)
 
-def format_staged_files(files, formatter, git_root, update_working_tree=True, write=True):
+def format_staged_files(file_patterns, formatter, git_root, update_working_tree=True, write=True):
     try:
         output = subprocess.check_output([
             'git', 'diff-index',
@@ -48,7 +48,7 @@ def format_staged_files(files, formatter, git_root, update_working_tree=True, wr
         for line in output.splitlines():
             entry = parse_diff(line.decode('utf-8'))
             entry_path = normalize_path(entry['src_path'], relative_to=git_root)
-            if not (matches_some_path(files, entry_path)):
+            if not (matches_some_path(file_patterns, entry_path)):
                 continue
             if format_file_in_index(formatter, entry, update_working_tree=update_working_tree, write=write):
                 info('Reformatted {} with {}'.format(entry['src_path'], formatter))
@@ -172,19 +172,29 @@ def get_git_root():
             ['git', 'rev-parse', '--show-toplevel']
             ).decode('utf-8').rstrip()
 
-def normalize_paths(paths, relative_to=None):
-    return [normalize_path(p, relative_to) for p in paths]
-
 def normalize_path(p, relative_to=None):
     return os.path.abspath(
             os.path.join(relative_to, p) if relative_to else p
             )
 
-def matches_some_path(paths, target):
-    for path in paths:
-        if fnmatch.fnmatch(target, path):
-            return True
-    return False
+def matches_some_path(patterns, target):
+    is_match = False
+    for signed_pattern in patterns:
+        (is_pattern_positive, pattern) = from_signed_pattern(signed_pattern)
+        if fnmatch(target, normalize_path(pattern)):
+            is_match = is_pattern_positive
+    return is_match
+
+# Checks for a '!' as the first character of a pattern, returns the rest of the
+# pattern in a tuple. The tuple takes the form (is_pattern_positive, pattern).
+# For example:
+#     from_signed_pattern('!pat') == (False, 'pat')
+#     from_signed_pattern('pat') == (True, 'pat')
+def from_signed_pattern(pattern):
+    if pattern[0] == '!':
+        return (False, pattern[1:])
+    else:
+        return (True, pattern)
 
 class CustomArgumentParser(argparse.ArgumentParser):
     def parse_args(self, args=None, namespace=None):
@@ -225,12 +235,12 @@ if __name__ == '__main__':
     parser.add_argument(
             'files',
             nargs='+',
-            help='Files to format. The formatter will only transform staged files that are named here. Arguments may be file paths, or globs which will be tested against staged file paths using Python\'s fnmatch function. For example "src/*.js" will match all files with a .js extension in src/ and its subdirectories. (Example: main.js src/*.js test/*.js)'
+            help='Patterns that specify files to format. The formatter will only transform staged files that are given here. Patterns may be literal file paths, or globs which will be tested against staged file paths using Python\'s fnmatch function. For example "src/*.js" will match all files with a .js extension in src/ and its subdirectories. Patterns may be negated to exclude files using a "!" character. Patterns are evaluated left-to-right. (Example: "main.js" "src/*.js" "test/*.js" "!test/todo/*")'
             )
     args = parser.parse_args()
     files = vars(args)['files']
     format_staged_files(
-            files=normalize_paths(files),
+            file_patterns=files,
             formatter=vars(args)['formatter'],
             git_root=get_git_root(),
             update_working_tree=not vars(args)['no_update_working_tree'],

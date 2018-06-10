@@ -191,6 +191,58 @@ test('expands globs', async t => {
   )
 })
 
+test('excludes files that match a negated glob', async t => {
+  const r = repo(t)
+
+  await fileInTree(r, 'src/index.js', '')
+  await setContent(r, 'src/index.js', 'function main() {  }')
+
+  await fileInTree(r, 'test/index.js', '')
+  await setContent(r, 'test/index.js', 'function test() {  }')
+
+  await stage(r, 'src/index.js')
+  await stage(r, 'test/index.js')
+
+  await formatStaged(r, '-f prettier-standard "*.js" "!test/*.js"')
+
+  contentIs(t, await getContent(r, 'src/index.js'), 'function main () {}')
+  contentIs(t, await getContent(r, 'test/index.js'), 'function test() {  }')
+})
+
+test('evaluates file patterns from left-to-right', async t => {
+  const r = repo(t)
+
+  await setContent(r, 'index.js', 'function main() {  }')
+
+  await fileInTree(r, 'src/index.js', '')
+  await setContent(r, 'src/index.js', 'function main() {  }')
+
+  await fileInTree(r, 'test/index.js', '')
+  await setContent(r, 'test/index.js', 'function test() {  }')
+
+  await fileInTree(r, 'test/helpers/index.js', '')
+  await setContent(r, 'test/helpers/index.js', 'function testHelper() {  }')
+
+  await stage(r, 'index.js')
+  await stage(r, 'src/index.js')
+  await stage(r, 'test/index.js')
+  await stage(r, 'test/helpers/index.js')
+
+  await formatStaged(
+    r,
+    '-f prettier-standard "!src/*.js" "*.js" "!test/*.js" "test/helpers/*.js"'
+  )
+
+  contentIs(t, await getContent(r, 'index.js'), 'function main () {}')
+  contentIs(t, await getContent(r, 'src/index.js'), 'function main () {}')
+  contentIs(t, await getContent(r, 'test/index.js'), 'function test() {  }')
+  contentIs(
+    t,
+    await getContent(r, 'test/helpers/index.js'),
+    'function testHelper () {}'
+  )
+})
+
 test('displays a message if a file was changed', async t => {
   const r = repo(t)
   await setContent(
