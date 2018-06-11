@@ -121,3 +121,59 @@ included arguments it would also need to be quoted.
 
 That's it! Whenever a file is changed as a result of formatting on commit you
 will see a message in the output from `git commit`.
+
+
+## Comparisons to similar utilities
+
+There are other tools that will format or lint staged files. What distinguishes
+git-format-staged is that when a file has both staged and unstaged changes
+git-format-staged ignores the unstaged changes; and it leaves unstaged changes
+unstaged when applying formatting.
+
+Some linters (such as [precise-commits][]) have an option to restrict linting
+to certain lines or character ranges in files, which is one way to ignore
+unstaged changes while linting. The author is not aware of a utility other than
+git-format-staged that can apply any arbitrary linter so that it ignores
+unstaged changes.
+
+Some other formatting utilities (such as [pre-commit][])
+use a different strategy to keep unstaged changes unstaged:
+
+1. stash unstaged changes
+2. apply the formatter to working tree files
+3. stage any resulting changes
+4. reapply stashed changes to the working tree.
+
+The problem is that you may get a conflict where stashed changes cannot be
+automatically merged after formatting has been applied. In those cases the user
+has to do some manual fixing to retrieve unstaged changes. As far as the author
+is aware git-format-staged is the only utility that applies a formatter without
+touching working tree files, and then merges formatting changes to the working
+tree. The advantage of merging formatting changes into unstaged changes (as
+opposed to merging unstaged changes into formatting changes) is that
+git-format-staged is non-lossy: if there are conflicts between unstaged changes
+and formatting the unstaged changes win, and are kept in the working tree,
+while staged/committed files are formatted properly.
+
+Another advantage of git-format-staged is that it has no dependencies beyond
+Python and git, and can be dropped into any programming language ecosystem.
+
+Some more comparisons:
+
+- [lint-staged][] lints and formats staged files. At the time of this writing
+  it does not have an official strategy for ignoring unstaged changes when
+  linting, or for keeping unstaged changes unstaged when formatting. But
+  lint-staged does provide powerful configuration options around which files
+  should be linted or formatted, what should happen before and after linting,
+  and so on.
+- the one-liner
+  `git diff --diff-filter=d --cached | grep '^[+-]' | grep -Ev '^(--- a/|\+\+\+ b/)' | LINT_COMMAND`
+  (described [here][lint changed hunks]) extracts changed hunks and feeds them
+  to a linter. But linting will fail if the linter requires the entire file for
+  context. For example a linter might report errors if it cannot see import
+  lines.
+
+[precise-commits]: https://github.com/nrwl/precise-commits
+[pre-commit]: https://pre-commit.com/#pre-commit-during-commits
+[lint-staged]: https://github.com/okonet/lint-staged
+[lint changed hunks]: https://github.com/okonet/lint-staged/issues/62#issuecomment-383217916
