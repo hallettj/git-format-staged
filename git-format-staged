@@ -60,7 +60,7 @@ def format_staged_files(file_patterns, formatter, git_root, update_working_tree=
 # Returns hash of the new object if formatting produced any changes.
 def format_file_in_index(formatter, diff_entry, update_working_tree=True, write=True):
     orig_hash = diff_entry['dst_hash']
-    new_hash = format_object(formatter, orig_hash)
+    new_hash = format_object(formatter, orig_hash, diff_entry['src_path'])
 
     # If the new hash is the same then the formatter did not make any changes.
     if not write or new_hash == orig_hash:
@@ -77,16 +77,17 @@ def format_file_in_index(formatter, diff_entry, update_working_tree=True, write=
 
     return new_hash
 
+file_path_placeholder = re.compile('\{\}')
 
 # Run formatter on a git blob identified by its hash. Writes output to a new git
 # blob, and returns the hash of the new blob.
-def format_object(formatter, object_hash):
+def format_object(formatter, object_hash, file_path):
     get_content = subprocess.Popen(
             ['git', 'cat-file', '-p', object_hash],
             stdout=subprocess.PIPE
             )
     format_content = subprocess.Popen(
-            formatter,
+            re.sub(file_path_placeholder, file_path, formatter),
             shell=True,
             stdin=get_content.stdout,
             stdout=subprocess.PIPE
@@ -214,7 +215,7 @@ if __name__ == '__main__':
     parser.add_argument(
             '--formatter', '-f',
             required=True,
-            help='Shell command to format files, will run once per file. (Example: "prettier --stdin")'
+            help='Shell command to format files, will run once per file. Occurrences of the placeholder `{}` will be replaced with a path to the file being formatted. (Example: "prettier --stdin --stdin-filepath \'{}\'")'
             )
     parser.add_argument(
             '--no-update-working-tree',

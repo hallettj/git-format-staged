@@ -503,6 +503,35 @@ test('messages from formatter command can be redirected to stderr', async t => {
   t.regex(stderr, /Parsing error: Unexpected token/)
 })
 
+test('replaces placeholder in the formatter command with name of file to be formatted', async t => {
+  const r = repo(t)
+  await setContent(r, 'index.js', '')
+  await stage(r, 'index.js')
+  await formatStaged(r, '--formatter "echo {}" "*.js"')
+  contentIs(t, await getStagedContent(r, 'index.js'), 'index.js')
+})
+
+test('replaces multiple filename placeholders', async t => {
+  const r = repo(t)
+  await setContent(r, 'index.js', '')
+  await stage(r, 'index.js')
+  await formatStaged(r, '--formatter "echo {} {}" "*.js"')
+  contentIs(t, await getStagedContent(r, 'index.js'), 'index.js index.js')
+})
+
+test('replaces filename placeholders with relative path to files in subdirectories', async t => {
+  const r = repo(t)
+  await fileInTree(r, 'test/testIndex.js', 'function test () {}')
+  await setContent(r, 'test/testIndex.js', '')
+  await stage(r, 'test/testIndex.js')
+  await formatStaged(r, '--formatter "echo {}" "*.js"')
+  contentIs(
+    t,
+    await getStagedContent(r, 'test/testIndex.js'),
+    'test/testIndex.js'
+  )
+})
+
 function contentIs (t: ExecutionContext<>, actual: string, expected: string) {
   t.is(trim(actual), trim(expected))
 }
