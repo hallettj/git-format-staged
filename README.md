@@ -176,6 +176,10 @@ Some more comparisons:
   lint-staged does provide powerful configuration options around which files
   should be linted or formatted, what should happen before and after linting,
   and so on.
+- [pretty-quick][] formats staged files with prettier. By default pretty-quick
+  will abort the commit if files are partially staged to allow the user to
+  decide how to re-stage changes from formatting. The result is more manual
+  effort compared to git-format-staged.
 - the one-liner
   `git diff --diff-filter=d --cached | grep '^[+-]' | grep -Ev '^(--- a/|\+\+\+ b/)' | LINT_COMMAND`
   (described [here][lint changed hunks]) extracts changed hunks and feeds them
@@ -185,5 +189,6 @@ Some more comparisons:
 
 [precise-commits]: https://github.com/nrwl/precise-commits
 [pre-commit]: https://pre-commit.com/#pre-commit-during-commits
+[pretty-quick]: https://www.npmjs.com/package/pretty-quick
 [lint-staged]: https://github.com/okonet/lint-staged
 [lint changed hunks]: https://github.com/okonet/lint-staged/issues/62#issuecomment-383217916
