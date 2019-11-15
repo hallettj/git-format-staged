@@ -404,11 +404,13 @@ test('succeeds with a warning if changes cannot be cleanly merged back to workin
   await setContent(
     r,
     'index.js',
-    `
-    function foo () {
-      doStuff("foo");
-    }
-    `
+    trim(
+      `
+      function foo () {
+        doStuff("foo");
+      }
+      `
+    )
   )
   await stage(r, 'index.js')
 
@@ -416,12 +418,14 @@ test('succeeds with a warning if changes cannot be cleanly merged back to workin
   await setContent(
     r,
     'index.js',
-    `
-    function foo () {
-      doStuff("foo");
-      doStuff("bar");
-    }
-    `
+    trim(
+      `
+      function foo () {
+        doStuff("foo")
+        doStuff("bar");
+      }
+      `
+    )
   )
 
   const { stderr } = await formatStaged(r, '-f prettier-standard *.js')
@@ -443,8 +447,85 @@ test('succeeds with a warning if changes cannot be cleanly merged back to workin
     await getContent(r, 'index.js'),
     `
     function foo () {
-      doStuff("foo");
+      doStuff("foo")
       doStuff("bar");
+    }
+    `
+  )
+})
+
+test('successfully merges formatting changes in individual hunks', async t => {
+  const r = repo(t)
+
+  // staged content
+  await setContent(
+    r,
+    'index.js',
+    trim(
+      `
+      function foo () {
+        doStuff("A1");
+
+        doStuff("A2");
+        doStuff("A3");
+
+        doStuff("A4");
+      }
+      `
+    )
+  )
+  await stage(r, 'index.js')
+
+  // working tree content
+  await setContent(
+    r,
+    'index.js',
+    trim(
+      `
+      function foo () {
+        doStuff("A1");
+        doStuff("B1");
+
+        doStuff("B2");
+        doStuff("A2");
+        doStuff("A3");
+
+        doStuff("A4");
+        doStuff("B3");
+      }
+      `
+    )
+  )
+
+  await formatStaged(r, '-f prettier-standard *.js')
+  contentIs(
+    t,
+    await getStagedContent(r, 'index.js'),
+    `
+    function foo () {
+      doStuff('A1')
+
+      doStuff('A2')
+      doStuff('A3')
+
+      doStuff('A4')
+    }
+    `
+  )
+  contentIs(
+    t,
+    await getContent(r, 'index.js'),
+    `
+    function foo () {
+      doStuff('A1')
+      doStuff("B1");
+
+      doStuff("B2");
+      doStuff('A2')
+      doStuff('A3')
+
+      doStuff('A4')
+      doStuff("B3");
     }
     `
   )

@@ -124,14 +124,14 @@ def replace_file_in_index(diff_entry, new_object_hash):
 
 def patch_working_file(path, orig_object_hash, new_object_hash):
     patch = subprocess.check_output(
-            ['git', 'diff', orig_object_hash, new_object_hash]
+            ['git', 'diff', '--unified=0', orig_object_hash, new_object_hash]
             )
 
     # Substitute object hashes in patch header with path to working tree file
     patch_b = patch.replace(orig_object_hash.encode(), path.encode()).replace(new_object_hash.encode(), path.encode())
 
     apply_patch = subprocess.Popen(
-            ['git', 'apply', '-'],
+            ['git', 'apply', '--unidiff-zero', '-'],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
