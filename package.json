@@ -27,7 +27,7 @@
     "git-format-staged"
   ],
   "release": {
-    "branch": "master"
+    "branches": "master"
   },
   "devDependencies": {
     "@babel/plugin-transform-flow-strip-types": "^7.4.4",
