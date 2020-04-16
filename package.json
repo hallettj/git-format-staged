@@ -39,7 +39,7 @@
     "eslint": "^5.16.0",
     "flow-bin": "^0.95.1",
     "fs-extra": "^6.0.1",
-    "husky": "^0.14.3",
+    "husky": "^4.2.5",
     "prettier-standard": "^9.1.1",
     "semantic-release": "^15.13.24",
     "strip-indent": "^3.0.0",
