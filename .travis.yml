@@ -9,7 +9,7 @@ cache:
     - ~/.npm
 
 before_install:
-  - nvm install v10
+  - nvm install v13
 
 install:
   - npm install
