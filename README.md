@@ -101,7 +101,7 @@ prevent files from being committed if they do not conform to style rules. You
 can use git-format-staged with the `--no-write` option, and supply a lint
 command instead of a format command. Here is an example using ESLint:
 
-    $ git-format-staged --no-write -f 'eslint --stdin >&2' 'src/*.js'
+    $ git-format-staged --no-write -f 'eslint --stdin --stdin-filename "{}" >&2' 'src/*.js'
 
 If this command is run in a pre-commit hook, and the lint command fails the
 commit will be aborted and error messages will be displayed. The lint command

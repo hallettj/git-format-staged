@@ -225,7 +225,7 @@ if __name__ == '__main__':
     parser.add_argument(
             '--no-write',
             action='store_true',
-            help='Prevents %(prog)s from modifying staged or working tree files. You can use this option to check staged changes with a linter instead of formatting. With this option stdout from the formatter command is ignored. Example: %(prog)s --no-write -f "eslint --stdin >&2" "*.js"'
+            help='Prevents %(prog)s from modifying staged or working tree files. You can use this option to check staged changes with a linter instead of formatting. With this option stdout from the formatter command is ignored. Example: %(prog)s --no-write -f "eslint --stdin --stdin-filename \'{}\' >&2" "*.js"'
             )
     parser.add_argument(
             '--version',
