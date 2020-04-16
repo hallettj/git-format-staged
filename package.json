@@ -42,7 +42,7 @@
     "husky": "^0.14.3",
     "prettier-standard": "^9.1.1",
     "semantic-release": "^15.13.24",
-    "strip-indent": "^2.0.0",
+    "strip-indent": "^3.0.0",
     "tmp": "0.0.33"
   },
   "ava": {
