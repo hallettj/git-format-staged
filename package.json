@@ -39,7 +39,7 @@
     "fs-extra": "^6.0.1",
     "husky": "^4.2.5",
     "prettier-standard": "^9.1.1",
-    "semantic-release": "^15.13.24",
+    "semantic-release": "^17.0.4",
     "strip-indent": "^3.0.0",
     "tmp": "0.0.33"
   },
