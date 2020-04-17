@@ -30,7 +30,7 @@
     "branches": "master"
   },
   "devDependencies": {
-    "@babel/plugin-transform-flow-strip-types": "^7.4.4",
+    "@babel/plugin-transform-flow-strip-types": "^7.9.0",
     "@commitlint/cli": "^8.2.0",
     "@commitlint/config-conventional": "^8.3.4",
     "ava": "^1.4.1",
