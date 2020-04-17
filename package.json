@@ -32,7 +32,7 @@
   "devDependencies": {
     "@babel/plugin-transform-flow-strip-types": "^7.4.4",
     "@commitlint/cli": "^8.2.0",
-    "@commitlint/config-conventional": "^8.2.0",
+    "@commitlint/config-conventional": "^8.3.4",
     "ava": "^1.4.1",
     "eslint": "^5.16.0",
     "flow-bin": "^0.122.0",
