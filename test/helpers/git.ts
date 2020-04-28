@@ -1,6 +1,4 @@
-/* @flow strict */
-
-import { type ChildProcess, spawn } from 'child_process'
+import { ChildProcess, SpawnOptionsWithoutStdio, spawn } from 'child_process'
 import * as fs from 'fs-extra'
 import { dirname, join, resolve } from 'path'
 import * as tmp from 'tmp'
@@ -11,8 +9,7 @@ export type Result = {
   stderr: string
 }
 
-// export opaque type Repo = string
-export opaque type Repo = {
+export interface Repo {
   path: Path,
   cleanup: () => void
 }
@@ -121,7 +118,7 @@ export async function setContent (
 async function run (
   cmd: string,
   args: string[] = [],
-  options: child_process$spawnOpts = {}
+  options: SpawnOptionsWithoutStdio = {}
 ): Promise<Result> {
   const r = await runCommand(cmd, args, options)
   return rejectOnNonzeroExit(r)
@@ -130,7 +127,7 @@ async function run (
 function runCommand (
   cmd: string,
   args: string[] = [],
-  options: child_process$spawnOpts = {}
+  options: SpawnOptionsWithoutStdio = {}
 ): Promise<Result> {
   const p = spawn(cmd, args, options)
   return getResult(p)
@@ -140,10 +137,10 @@ function getResult (p: ChildProcess): Promise<Result> {
   return new Promise((resolve, reject) => {
     var stdout = ''
     var stderr = ''
-    p.stdout.on('data', buf => {
+    p.stdout?.on('data', buf => {
       stdout += buf.toString()
     })
-    p.stderr.on('data', buf => {
+    p.stderr?.on('data', buf => {
       stderr += buf.toString()
     })
     p.on('close', exitCode => {
