@@ -36,7 +36,7 @@
     "@types/tmp": "^0.1.0",
     "ava": "^3.8.1",
     "eslint": "^5.16.0",
-    "fs-extra": "^6.0.1",
+    "fs-extra": "^9.0.0",
     "husky": "^4.2.5",
     "micromatch": "^4.0.2",
     "prettier-standard": "^9.1.1",
