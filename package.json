@@ -30,30 +30,31 @@
     "branches": "master"
   },
   "devDependencies": {
-    "@babel/plugin-transform-flow-strip-types": "^7.9.0",
     "@commitlint/cli": "^8.3.5",
     "@commitlint/config-conventional": "^8.3.4",
-    "ava": "^1.4.1",
+    "@types/fs-extra": "^8.1.0",
+    "@types/tmp": "^0.1.0",
+    "ava": "^3.8.1",
     "eslint": "^5.16.0",
-    "flow-bin": "^0.123.0",
     "fs-extra": "^6.0.1",
     "husky": "^4.2.5",
+    "micromatch": "^4.0.2",
     "prettier-standard": "^9.1.1",
     "semantic-release": "^17.0.7",
     "strip-indent": "^3.0.0",
-    "tmp": "0.2.0"
+    "tmp": "0.2.0",
+    "ts-node": "^8.9.1",
+    "typescript": "^3.8.3"
   },
   "ava": {
-    "babel": {
-      "testOptions": {
-        "plugins": [
-          "@babel/plugin-transform-flow-strip-types"
-        ]
-      }
-    },
-    "color": false,
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
     "files": [
-      "test/**/*_test.js"
+      "test/**/*_test.ts"
     ]
   },
   "husky": {

@@ -1,9 +1,7 @@
-/* @flow strict */
-
-import test, { type ExecutionContext } from 'ava'
+import test, { ExecutionContext } from 'ava'
 import stripIndent from 'strip-indent'
 import {
-  type Repo,
+  Repo,
   cleanup,
   fileInTree,
   formatStaged,
@@ -532,7 +530,7 @@ test('replaces filename placeholders with relative path to files in subdirectori
   )
 })
 
-function contentIs (t: ExecutionContext<>, actual: string, expected: string) {
+function contentIs (t: ExecutionContext, actual: string, expected: string) {
   t.is(trim(actual), trim(expected))
 }
 
