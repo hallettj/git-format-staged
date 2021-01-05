@@ -66,6 +66,12 @@ def format_file_in_index(formatter, diff_entry, update_working_tree=True, write=
     if not write or new_hash == orig_hash:
         return None
 
+    # If the content of the new object is empty then the formatter did not
+    # produce any output. We want to abort instead of replacing the file with an
+    # empty one.
+    if object_is_empty(new_hash):
+        return None
+
     replace_file_in_index(diff_entry, new_hash)
 
     if update_working_tree:
@@ -113,6 +119,18 @@ def format_object(formatter, object_hash, file_path):
         raise Exception('unable to write formatted content to object database')
 
     return new_hash.decode('utf-8').rstrip()
+
+def object_is_empty(object_hash):
+    get_content = subprocess.Popen(
+            ['git', 'cat-file', '-p', object_hash],
+            stdout=subprocess.PIPE
+        )
+    content, err = get_content.communicate()
+
+    if get_content.returncode != 0:
+        raise Exception('unable to verify content of formatted object')
+
+    return not content
 
 def replace_file_in_index(diff_entry, new_object_hash):
     subprocess.check_call(['git', 'update-index',

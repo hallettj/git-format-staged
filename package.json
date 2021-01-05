@@ -7,7 +7,9 @@
     "prepublishOnly": "sed -i \"s/\\$VERSION/$npm_package_version/\" git-format-staged",
     "semantic-release": "semantic-release"
   },
-  "bin": "./git-format-staged",
+  "bin": {
+    "git-format-staged": "git-format-staged"
+  },
   "main": "./no-main.js",
   "repository": {
     "type": "git",
