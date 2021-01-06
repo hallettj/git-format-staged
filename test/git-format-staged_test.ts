@@ -489,6 +489,18 @@ test('fails with non-zero exit status if formatter fails and `--no-write` is set
   t.regex(stderr, /SyntaxError: Unexpected token/)
 })
 
+test('does not write changes if formatter does not produce output', async t => {
+  const r = repo(t)
+  await setContent(r, 'index.js', `function foo() { return "foo"; }`)
+  await stage(r, 'index.js')
+  await formatStaged(r, '-f true "*.js"')
+  contentIs(
+    t,
+    await getStagedContent(r, 'index.js'),
+    `function foo() { return "foo"; }`
+  )
+})
+
 test('messages from formatter command can be redirected to stderr', async t => {
   const r = repo(t)
   await setContent(r, 'index.js', 'function foo{} ( return "foo" )')
