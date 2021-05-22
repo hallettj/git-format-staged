@@ -2,5 +2,10 @@ node_modules/
 npm-debug.log
 yarn-error.log
 
+# Ruby
+.bundle
+Gemfile.lock
+/pkg/
+
 # Misc
 .DS_Store

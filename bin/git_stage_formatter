@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require "git_stage_formatter"
+
+GitStageFormatter.run(ARGV)
