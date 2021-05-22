@@ -38,6 +38,8 @@ patch step can be disabled with the `--no-update-working-tree` option.
 
 Requires Python version 3 or 2.7.
 
+### npm
+
 Install as a development dependency in a project that uses npm packages:
 
     $ npm install --save-dev git-format-staged
@@ -46,10 +48,25 @@ Or install globally:
 
     $ npm install --global git-format-staged
 
-If you do not use npm you can copy the
-[`git-format-staged`](./git-format-staged) script from this repository and
-place it in your executable path. The script is MIT-licensed - so you can check
-the script into version control in your own open source project if you wish.
+### bundler
+
+Add this gem to your Gemfile:
+
+```ruby
+gem 'git_stage_formatter'
+```
+
+### gem
+
+Install the binary via gem:
+
+```sh
+gem install git_stage_formatter
+```
+
+### Manually
+
+If you don't use `npm`, `bundler` or `gem`, you can copy the [`git-format-staged`](./git-format-staged) script from this repository and place it in your executable path, or somewhere convenient. The script is MIT-licensed - so you can check the script into version control in your own open source project if you wish.
 
 
 ## How to use
