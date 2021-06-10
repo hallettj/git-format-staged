@@ -48,6 +48,9 @@ def format_staged_files(file_patterns, formatter, git_root, update_working_tree=
         for line in output.splitlines():
             entry = parse_diff(line.decode('utf-8'))
             entry_path = normalize_path(entry['src_path'], relative_to=git_root)
+            if entry['dst_mode'] == '120000':
+                # Do not process symlinks
+                continue
             if not (matches_some_path(file_patterns, entry_path)):
                 continue
             if format_file_in_index(formatter, entry, update_working_tree=update_working_tree, write=write):
