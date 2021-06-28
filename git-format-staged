@@ -27,7 +27,7 @@ VERSION = '$VERSION'
 PROG = sys.argv[0]
 
 def info(msg):
-    print(msg, file=sys.stderr)
+    print(msg, file=sys.stdout)
 
 def warn(msg):
     print('{}: warning: {}'.format(PROG, msg), file=sys.stderr)
