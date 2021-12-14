@@ -7,7 +7,7 @@
 # ignoring unstaged changes.
 #
 # Usage: git-format-staged [OPTION]... [FILE]...
-# Example: git-format-staged --formatter 'prettier --stdin' '*.js'
+# Example: git-format-staged --formatter 'prettier --stdin-filepath "{}"' '*.js'
 #
 # Tested with Python 3.6 and Python 2.7.
 #
@@ -231,12 +231,12 @@ class CustomArgumentParser(argparse.ArgumentParser):
 if __name__ == '__main__':
     parser = CustomArgumentParser(
             description='Transform staged files using a formatting command that accepts content via stdin and produces a result via stdout.',
-            epilog='Example: %(prog)s --formatter "prettier --stdin" "src/*.js" "test/*.js"'
+            epilog='Example: %(prog)s --formatter "prettier --stdin-filepath \'{}\'" "src/*.js" "test/*.js"'
             )
     parser.add_argument(
             '--formatter', '-f',
             required=True,
-            help='Shell command to format files, will run once per file. Occurrences of the placeholder `{}` will be replaced with a path to the file being formatted. (Example: "prettier --stdin --stdin-filepath \'{}\'")'
+            help='Shell command to format files, will run once per file. Occurrences of the placeholder `{}` will be replaced with a path to the file being formatted. (Example: "prettier --stdin-filepath \'{}\'")'
             )
     parser.add_argument(
             '--no-update-working-tree',
