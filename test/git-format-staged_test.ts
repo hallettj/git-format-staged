@@ -109,10 +109,10 @@ test('fails if formatter command is not quoted', async t => {
   const r = repo(t)
   const { exitCode, stderr } = await formatStagedCaptureError(
     r,
-    '-f prettier --stdin *.js'
+    '-f prettier --stdin-filepath "{}" *.js'
   )
   t.true(exitCode > 0)
-  t.regex(stderr, /unrecognized arguments: --stdin/)
+  t.regex(stderr, /unrecognized arguments: --stdin-filepath/)
   t.regex(stderr, /Do you need to quote your formatter command\?/)
 })
 

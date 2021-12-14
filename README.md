@@ -61,7 +61,7 @@ For detailed information run:
 The command expects a shell command to run a formatter, and one or more file
 patterns to identify which files should be formatted. For example:
 
-    $ git-format-staged --formatter 'prettier --stdin --stdin-filepath "{}"' 'src/*.js'
+    $ git-format-staged --formatter 'prettier --stdin-filepath "{}"' 'src/*.js'
 
 That will format all files under `src/` and its subdirectories using
 `prettier`. The file pattern is tested against staged files using Python's
@@ -75,7 +75,7 @@ content to `stdout`.
 
 Files can be excluded by prefixing a pattern with `!`. For example:
 
-    $ git-format-staged --formatter 'prettier --stdin' '*.js' '!flow-typed/*'
+    $ git-format-staged --formatter 'prettier --stdin-filepath "{}"' '*.js' '!flow-typed/*'
 
 Patterns are evaluated from left-to-right: if a file matches multiple patterns
 the right-most pattern determines whether the file is included or excluded.
@@ -89,7 +89,7 @@ with the path of the file that is being formatted. This is useful if your
 formatter needs to know the file extension to determine how to format or to
 lint each file. For example:
 
-    $ git-format-staged -f 'prettier --stdin --stdin-filepath "{}"' '*.js' '*.css'
+    $ git-format-staged -f 'prettier --stdin-filepath "{}"' '*.js' '*.css'
 
 Do not attempt to read or write to `{}` in your formatter command! The
 placeholder exists only for referencing the file name and path.
