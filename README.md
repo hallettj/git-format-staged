@@ -73,7 +73,14 @@ file names.
 The formatter command must read file content from `stdin`, and output formatted
 content to `stdout`.
 
-Files can be excluded by prefixing a pattern with `!`. For example:
+Note that the syntax of the `fnmatch` glob match is a is a bit different from
+normal shell globbing. So if you need to match multiple patterns, you should
+pass multiple arguments with different patterns, and they will be grouped.
+So instead of e.g. `'src/**/*.{js,jsx,ts}'`, you would use:
+
+    $ git-format-staged --formatter 'prettier --stdin-filepath "{}"' 'src/*.js' 'src/*.jsx' 'src/*.ts'
+
+Simiarly, files can be excluded by prefixing a pattern with `!`. For example:
 
     $ git-format-staged --formatter 'prettier --stdin-filepath "{}"' '*.js' '!flow-typed/*'
 
