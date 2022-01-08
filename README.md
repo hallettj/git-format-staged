@@ -3,10 +3,10 @@
 [![Build Status](https://travis-ci.org/hallettj/git-format-staged.svg?branch=master)](https://travis-ci.org/hallettj/git-format-staged)
 
 Consider a project where you want all code formatted consistently. So you use
-a formatting command. (For example I use [prettier-standard][] in my
-Javascript projects.) You want to make sure that everyone working on the
-project runs the formatter, so you use a tool like [husky][] to install a git
-pre-commit hook. The naive way to write that hook would be to:
+a formatting command. (For example I use [prettier][] in my Javascript and
+Typescript projects.) You want to make sure that everyone working on the project
+runs the formatter, so you use a tool like [husky][] to install a git pre-commit
+hook. The naive way to write that hook would be to:
 
 - get a list of staged files
 - run the formatter on those files
@@ -30,9 +30,8 @@ version of the file that is committed will be formatted properly - the warning
 just means that working tree copy of the file has been left unformatted. The
 patch step can be disabled with the `--no-update-working-tree` option.
 
-[prettier-standard]: https://www.npmjs.com/package/prettier-standard
+[prettier]: https://prettier.io/
 [husky]: https://www.npmjs.com/package/husky
-
 
 ## How to install
 
@@ -50,7 +49,6 @@ If you do not use npm you can copy the
 [`git-format-staged`](./git-format-staged) script from this repository and
 place it in your executable path. The script is MIT-licensed - so you can check
 the script into version control in your own open source project if you wish.
-
 
 ## How to use
 
@@ -123,9 +121,9 @@ notation) so that you can see them.
 Follow these steps to automatically format all Javascript files on commit in
 a project that uses npm.
 
-Install git-format-staged, husky, and a formatter (I use `prettier-standard`):
+Install git-format-staged, husky, and a formatter (I use `prettier`):
 
-    $ npm install --save-dev git-format-staged husky prettier-standard
+    $ npm install --save-dev git-format-staged husky prettier
 
 Add a `prepare` script to install husky when running `npm install`:
 
@@ -134,11 +132,11 @@ Add a `prepare` script to install husky when running `npm install`:
 
 Add the pre-commit hook:
 
-    $ npx husky add .husky/pre-commit "git-format-staged --formatter 'prettier-standard --stdin-filepath \"{}\"' '*.js'"
+    $ npx husky add .husky/pre-commit "git-format-staged --formatter 'prettier --stdin-filepath \"{}\"' '*.js' '*.ts'"
     $ git add .husky/pre-commit
 
-Once again note that the `'*.js'` pattern is quoted! If the formatter command
-included arguments it would also need to be quoted.
+Once again note that the formatter command and the `'*.js'` and `'*.ts'`
+patterns are quoted!
 
 That's it! Whenever a file is changed as a result of formatting on commit you
 will see a message in the output from `git commit`.
