@@ -127,7 +127,8 @@ Add a `prepare` script to install husky when running `npm install`:
 
 Add the pre-commit hook:
 
-    $ npx husky add .husky/pre-commit "npx git-format-staged --formatter 'npx prettier-standard --stdin-filepath \"{}\"' '*.js'"
+    $ npx husky add .husky/pre-commit "git-format-staged --formatter 'prettier-standard --stdin-filepath \"{}\"' '*.js'"
+    $ git add .husky/pre-commit
 
 Once again note that the `'*.js'` pattern is quoted! If the formatter command
 included arguments it would also need to be quoted.
