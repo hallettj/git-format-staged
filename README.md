@@ -116,22 +116,25 @@ notation) so that you can see them.
 Follow these steps to automatically format all Javascript files on commit in
 a project that uses npm.
 
-Install git-format-staged, husky, and a formatter (I use prettier-standard):
+Install git-format-staged, husky, and a formatter (I use `prettier-standard`):
 
     $ npm install --save-dev git-format-staged husky prettier-standard
 
-Add a `"precommit"` script in `package.json`:
+Add a `prepare` script to install husky when running `npm install`:
 
-    "scripts": {
-      "precommit": "git-format-staged -f prettier-standard '*.js'"
-    }
+    $ npm set-script prepare "husky install"
+    $ npm run prepare
+
+Add the pre-commit hook:
+
+    $ npx husky add .husky/pre-commit "git-format-staged --formatter 'prettier-standard --stdin-filepath \"{}\"' '*.js'"
+    $ git add .husky/pre-commit
 
 Once again note that the `'*.js'` pattern is quoted! If the formatter command
 included arguments it would also need to be quoted.
 
 That's it! Whenever a file is changed as a result of formatting on commit you
 will see a message in the output from `git commit`.
-
 
 ## Comparisons to similar utilities
 
