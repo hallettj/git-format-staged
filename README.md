@@ -80,7 +80,7 @@ So instead of e.g. `'src/**/*.{js,jsx,ts}'`, you would use:
 
     $ git-format-staged --formatter 'prettier --stdin-filepath "{}"' 'src/*.js' 'src/*.jsx' 'src/*.ts'
 
-Simiarly, files can be excluded by prefixing a pattern with `!`. For example:
+Files can be excluded by prefixing a pattern with `!`. For example:
 
     $ git-format-staged --formatter 'prettier --stdin-filepath "{}"' '*.js' '!flow-typed/*'
 
