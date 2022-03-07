@@ -96,30 +96,18 @@ def format_object(formatter, object_hash, file_path):
             stdout=subprocess.PIPE
             )
     format_content = subprocess.Popen(
-            re.sub(file_path_placeholder, file_path, formatter),
+            re.sub(file_path_placeholder, file_path, formatter) + ' | git hash-object -w --stdin',
             shell=True,
             stdin=get_content.stdout,
             stdout=subprocess.PIPE
             )
-    write_object = subprocess.Popen(
-            ['git', 'hash-object', '-w', '--stdin'],
-            stdin=format_content.stdout,
-            stdout=subprocess.PIPE
-            )
-
+    
     get_content.stdout.close()
-    format_content.stdout.close()
 
-    if get_content.wait() != 0:
-        raise ValueError('unable to read file content from object database: ' + object_hash)
+    new_hash, err = format_content.communicate()
 
-    if format_content.wait() != 0:
-        raise Exception('formatter exited with non-zero status') # TODO: capture stderr from format command
-
-    new_hash, err = write_object.communicate()
-
-    if write_object.returncode != 0:
-        raise Exception('unable to write formatted content to object database')
+    if format_content.returncode != 0:
+        raise Exception('unable to format and write formatted content to object database')
 
     return new_hash.decode('utf-8').rstrip()
 
