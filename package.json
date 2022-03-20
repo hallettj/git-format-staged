@@ -29,7 +29,10 @@
     "git-format-staged"
   ],
   "release": {
-    "branches": "master"
+    "branches": [
+      "+([0-9])?(.{+([0-9]),x}).x",
+      "release"
+    ]
   },
   "devDependencies": {
     "@commitlint/cli": "^8.3.5",
