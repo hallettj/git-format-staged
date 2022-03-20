@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Git command to transform staged files according to a command that accepts file
 # content on stdin and produces output on stdout. This command is useful in
@@ -9,7 +9,7 @@
 # Usage: git-format-staged [OPTION]... [FILE]...
 # Example: git-format-staged --formatter 'prettier --stdin-filepath "{}"' '*.js'
 #
-# Tested with Python 3.6 and Python 2.7.
+# Tested with Python 3.10 and Python 2.7.
 #
 # Original author: Jesse Hallett <jesse@sitr.us>
 
