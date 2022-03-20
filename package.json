@@ -42,7 +42,7 @@
     "husky": "^4.2.5",
     "micromatch": "^4.0.2",
     "prettier-standard": "^9.1.1",
-    "semantic-release": "^17.2.3",
+    "semantic-release": "^19.0.2",
     "strip-indent": "^3.0.0",
     "tmp": "0.2.0",
     "ts-node": "^8.9.1",
