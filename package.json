@@ -28,12 +28,6 @@
   "files": [
     "git-format-staged"
   ],
-  "release": {
-    "branches": [
-      "+([0-9])?(.{+([0-9]),x}).x",
-      "release"
-    ]
-  },
   "devDependencies": {
     "@commitlint/cli": "^8.3.5",
     "@commitlint/config-conventional": "^8.3.4",
