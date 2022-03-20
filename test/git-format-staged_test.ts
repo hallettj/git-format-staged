@@ -252,8 +252,8 @@ test('displays a message if a file was changed', async t => {
     `
   )
   await stage(r, 'index.js')
-  const { stderr } = await formatStaged(r, '-f prettier-standard *.js')
-  t.regex(stderr, /Reformatted index\.js with prettier-standard/)
+  const { stdout } = await formatStaged(r, '-f prettier-standard *.js')
+  t.regex(stdout, /Reformatted index\.js with prettier-standard/)
 })
 
 test('does not display a message if formatting did not produce any changes', async t => {
