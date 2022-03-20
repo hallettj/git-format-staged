@@ -27,7 +27,7 @@ VERSION = '$VERSION'
 PROG = sys.argv[0]
 
 def info(msg):
-    print(msg, file=sys.stderr)
+    print(msg, file=sys.stdout)
 
 def warn(msg):
     print('{}: warning: {}'.format(PROG, msg), file=sys.stderr)
@@ -145,7 +145,7 @@ def replace_file_in_index(diff_entry, new_object_hash):
 
 def patch_working_file(path, orig_object_hash, new_object_hash):
     patch = subprocess.check_output(
-            ['git', 'diff', orig_object_hash, new_object_hash]
+            ['git', 'diff', '--color=never', orig_object_hash, new_object_hash]
             )
 
     # Substitute object hashes in patch header with path to working tree file

@@ -1,0 +1,3 @@
+branches:
+  - +([0-9])?(.{+([0-9]),x}).x  # maintenance branches of the form 2.x
+  - release                     # pushes to `release` branch trigger automatic publish
