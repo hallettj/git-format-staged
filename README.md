@@ -3,10 +3,10 @@
 [![Build Status](https://travis-ci.org/hallettj/git-format-staged.svg?branch=master)](https://travis-ci.org/hallettj/git-format-staged)
 
 Consider a project where you want all code formatted consistently. So you use
-a formatting command. (For example I use [prettier-standard][] in my
-Javascript projects.) You want to make sure that everyone working on the
-project runs the formatter, so you use a tool like [husky][] to install a git
-pre-commit hook. The naive way to write that hook would be to:
+a formatting command. (For example I use [prettier][] in my Javascript and
+Typescript projects.) You want to make sure that everyone working on the project
+runs the formatter, so you use a tool like [husky][] to install a git pre-commit
+hook. The naive way to write that hook would be to:
 
 - get a list of staged files
 - run the formatter on those files
@@ -30,9 +30,8 @@ version of the file that is committed will be formatted properly - the warning
 just means that working tree copy of the file has been left unformatted. The
 patch step can be disabled with the `--no-update-working-tree` option.
 
-[prettier-standard]: https://www.npmjs.com/package/prettier-standard
+[prettier]: https://prettier.io/
 [husky]: https://www.npmjs.com/package/husky
-
 
 ## How to install
 
@@ -68,7 +67,6 @@ gem install git_stage_formatter
 
 If you don't use `npm`, `bundler` or `gem`, you can copy the [`git-format-staged`](./git-format-staged) script from this repository and place it in your executable path, or somewhere convenient. The script is MIT-licensed - so you can check the script into version control in your own open source project if you wish.
 
-
 ## How to use
 
 For detailed information run:
@@ -78,7 +76,7 @@ For detailed information run:
 The command expects a shell command to run a formatter, and one or more file
 patterns to identify which files should be formatted. For example:
 
-    $ git-format-staged --formatter 'prettier --stdin --stdin-filepath "{}"' 'src/*.js'
+    $ git-format-staged --formatter 'prettier --stdin-filepath "{}"' 'src/*.js'
 
 That will format all files under `src/` and its subdirectories using
 `prettier`. The file pattern is tested against staged files using Python's
@@ -90,9 +88,16 @@ file names.
 The formatter command must read file content from `stdin`, and output formatted
 content to `stdout`.
 
+Note that the syntax of the `fnmatch` glob match is a is a bit different from
+normal shell globbing. So if you need to match multiple patterns, you should
+pass multiple arguments with different patterns, and they will be grouped.
+So instead of e.g. `'src/**/*.{js,jsx,ts}'`, you would use:
+
+    $ git-format-staged --formatter 'prettier --stdin-filepath "{}"' 'src/*.js' 'src/*.jsx' 'src/*.ts'
+
 Files can be excluded by prefixing a pattern with `!`. For example:
 
-    $ git-format-staged --formatter 'prettier --stdin' '*.js' '!flow-typed/*'
+    $ git-format-staged --formatter 'prettier --stdin-filepath "{}"' '*.js' '!flow-typed/*'
 
 Patterns are evaluated from left-to-right: if a file matches multiple patterns
 the right-most pattern determines whether the file is included or excluded.
@@ -106,7 +111,7 @@ with the path of the file that is being formatted. This is useful if your
 formatter needs to know the file extension to determine how to format or to
 lint each file. For example:
 
-    $ git-format-staged -f 'prettier --stdin --stdin-filepath "{}"' '*.js' '*.css'
+    $ git-format-staged -f 'prettier --stdin-filepath "{}"' '*.js' '*.css'
 
 Do not attempt to read or write to `{}` in your formatter command! The
 placeholder exists only for referencing the file name and path.
@@ -133,22 +138,25 @@ notation) so that you can see them.
 Follow these steps to automatically format all Javascript files on commit in
 a project that uses npm.
 
-Install git-format-staged, husky, and a formatter (I use prettier-standard):
+Install git-format-staged, husky, and a formatter (I use `prettier`):
 
-    $ npm install --save-dev git-format-staged husky prettier-standard
+    $ npm install --save-dev git-format-staged husky prettier
 
-Add a `"precommit"` script in `package.json`:
+Add a `prepare` script to install husky when running `npm install`:
 
-    "scripts": {
-      "precommit": "git-format-staged -f prettier-standard '*.js'"
-    }
+    $ npm set-script prepare "husky install"
+    $ npm run prepare
 
-Once again note that the `'*.js'` pattern is quoted! If the formatter command
-included arguments it would also need to be quoted.
+Add the pre-commit hook:
+
+    $ npx husky add .husky/pre-commit "git-format-staged --formatter 'prettier --stdin-filepath \"{}\"' '*.js' '*.ts'"
+    $ git add .husky/pre-commit
+
+Once again note that the formatter command and the `'*.js'` and `'*.ts'`
+patterns are quoted!
 
 That's it! Whenever a file is changed as a result of formatting on commit you
 will see a message in the output from `git commit`.
-
 
 ## Comparisons to similar utilities
 

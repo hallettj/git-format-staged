@@ -109,10 +109,10 @@ test('fails if formatter command is not quoted', async t => {
   const r = repo(t)
   const { exitCode, stderr } = await formatStagedCaptureError(
     r,
-    '-f prettier --stdin *.js'
+    '-f prettier --stdin-filepath "{}" *.js'
   )
   t.true(exitCode > 0)
-  t.regex(stderr, /unrecognized arguments: --stdin/)
+  t.regex(stderr, /unrecognized arguments: --stdin-filepath/)
   t.regex(stderr, /Do you need to quote your formatter command\?/)
 })
 
@@ -252,8 +252,8 @@ test('displays a message if a file was changed', async t => {
     `
   )
   await stage(r, 'index.js')
-  const { stderr } = await formatStaged(r, '-f prettier-standard *.js')
-  t.regex(stderr, /Reformatted index\.js with prettier-standard/)
+  const { stdout } = await formatStaged(r, '-f prettier-standard *.js')
+  t.regex(stdout, /Reformatted index\.js with prettier-standard/)
 })
 
 test('does not display a message if formatting did not produce any changes', async t => {

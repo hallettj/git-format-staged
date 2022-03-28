@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Git command to transform staged files according to a command that accepts file
 # content on stdin and produces output on stdout. This command is useful in
@@ -7,9 +7,9 @@
 # ignoring unstaged changes.
 #
 # Usage: git-format-staged [OPTION]... [FILE]...
-# Example: git-format-staged --formatter 'prettier --stdin' '*.js'
+# Example: git-format-staged --formatter 'prettier --stdin-filepath "{}"' '*.js'
 #
-# Tested with Python 3.6 and Python 2.7.
+# Tested with Python 3.10 and Python 2.7.
 #
 # Original author: Jesse Hallett <jesse@sitr.us>
 
@@ -27,7 +27,7 @@ VERSION = '$VERSION'
 PROG = sys.argv[0]
 
 def info(msg):
-    print(msg, file=sys.stderr)
+    print(msg, file=sys.stdout)
 
 def warn(msg):
     print('{}: warning: {}'.format(PROG, msg), file=sys.stderr)
@@ -48,6 +48,9 @@ def format_staged_files(file_patterns, formatter, git_root, update_working_tree=
         for line in output.splitlines():
             entry = parse_diff(line.decode('utf-8'))
             entry_path = normalize_path(entry['src_path'], relative_to=git_root)
+            if entry['dst_mode'] == '120000':
+                # Do not process symlinks
+                continue
             if not (matches_some_path(file_patterns, entry_path)):
                 continue
             if format_file_in_index(formatter, entry, update_working_tree=update_working_tree, write=write):
@@ -142,7 +145,7 @@ def replace_file_in_index(diff_entry, new_object_hash):
 
 def patch_working_file(path, orig_object_hash, new_object_hash):
     patch = subprocess.check_output(
-            ['git', 'diff', orig_object_hash, new_object_hash]
+            ['git', 'diff', '--color=never', orig_object_hash, new_object_hash]
             )
 
     # Substitute object hashes in patch header with path to working tree file
@@ -228,12 +231,12 @@ class CustomArgumentParser(argparse.ArgumentParser):
 if __name__ == '__main__':
     parser = CustomArgumentParser(
             description='Transform staged files using a formatting command that accepts content via stdin and produces a result via stdout.',
-            epilog='Example: %(prog)s --formatter "prettier --stdin" "src/*.js" "test/*.js"'
+            epilog='Example: %(prog)s --formatter "prettier --stdin-filepath \'{}\'" "src/*.js" "test/*.js"'
             )
     parser.add_argument(
             '--formatter', '-f',
             required=True,
-            help='Shell command to format files, will run once per file. Occurrences of the placeholder `{}` will be replaced with a path to the file being formatted. (Example: "prettier --stdin --stdin-filepath \'{}\'")'
+            help='Shell command to format files, will run once per file. Occurrences of the placeholder `{}` will be replaced with a path to the file being formatted. (Example: "prettier --stdin-filepath \'{}\'")'
             )
     parser.add_argument(
             '--no-update-working-tree',
