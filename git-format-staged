@@ -97,7 +97,7 @@ def format_object(formatter, object_hash, file_path, verbose=False):
             )
     command = re.sub(file_path_placeholder, file_path, formatter)
     if verbose:
-        print(command)
+        info(command)
     format_content = subprocess.Popen(
             command,
             shell=True,
