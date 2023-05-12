@@ -148,7 +148,7 @@ def replace_file_in_index(diff_entry, new_object_hash):
 
 def patch_working_file(path, orig_object_hash, new_object_hash):
     patch = subprocess.check_output(
-            ['git', 'diff', '--color=never', orig_object_hash, new_object_hash]
+            ['git', 'diff', '--no-ext-diff', '--color=never', orig_object_hash, new_object_hash]
             )
 
     # Substitute object hashes in patch header with path to working tree file
