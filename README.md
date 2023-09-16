@@ -217,3 +217,15 @@ Some more comparisons:
 [pretty-quick]: https://www.npmjs.com/package/pretty-quick
 [lint-staged]: https://github.com/okonet/lint-staged
 [lint changed hunks]: https://github.com/okonet/lint-staged/issues/62#issuecomment-383217916
+
+# Development
+
+To bump the lib's version, run `bundle exec rake bump[1.2.3]` (replacing the value with the desired version).
+
+To release a new version, update the version number in `version.rb` (likely done via `rake bump` above), and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+
+# Contributing
+
+If you spot something wrong, missing, or if you'd like to propose improvements to this project, please open an Issue or a Pull Request with your ideas and I promise to get back to you within 24 hours! 😇
+
+For a list of issues worth tackling check out: https://github.com/rogerluan/git_stage_formatter/issues
