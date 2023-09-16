@@ -1,0 +1,34 @@
+PATH
+  remote: .
+  specs:
+    git_stage_formatter (3.0.1)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    pastel (0.8.0)
+      tty-color (~> 0.5)
+    rake (13.0.6)
+    tty-color (0.6.0)
+    tty-cursor (0.7.1)
+    tty-prompt (0.23.1)
+      pastel (~> 0.8)
+      tty-reader (~> 0.8)
+    tty-reader (0.9.0)
+      tty-cursor (~> 0.7)
+      tty-screen (~> 0.8)
+      wisper (~> 2.0)
+    tty-screen (0.8.1)
+    wisper (2.0.1)
+
+PLATFORMS
+  arm64-darwin-21
+
+DEPENDENCIES
+  bundler (~> 2)
+  git_stage_formatter!
+  rake
+  tty-prompt
+
+BUNDLED WITH
+   2.4.18
