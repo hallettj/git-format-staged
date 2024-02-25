@@ -1,0 +1,22 @@
+name: Release
+on:
+  push:
+    branches:
+      - release
+  pull_request:
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '14.x'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Test
+        run: npm test
+      - name: Release
+        run: npm run semantic-release
