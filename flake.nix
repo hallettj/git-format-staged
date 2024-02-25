@@ -11,7 +11,7 @@
     in
     {
       packages = eachSystem (system: {
-        default = pkgs.${system}.callPackage ./git-format-staged.nix { };
+        default = pkgs.${system}.callPackage ./packages/git-format-staged.nix { };
       });
       devShells = eachSystem (system: {
         default = pkgs.${system}.mkShell {

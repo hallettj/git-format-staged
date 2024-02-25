@@ -3,12 +3,12 @@
 , python3
 }:
 let
-  manifest = builtins.fromJSON (builtins.readFile ./package.json);
+  manifest = builtins.fromJSON (builtins.readFile ../package.json);
 in
 stdenvNoCC.mkDerivation {
   name = "git-format-staged";
   version = manifest.version;
-  src = ./.;
+  src = ../.;
   buildInputs = [ python3 ];
   installPhase = ''
     mkdir -p "$out/bin"
