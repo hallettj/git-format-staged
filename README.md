@@ -35,6 +35,16 @@ patch step can be disabled with the `--no-update-working-tree` option.
 
 ## How to install
 
+### Install with Nix
+
+Install via the CLI:
+
+    $ nix profile add github:hallettj/git-format-staged
+
+Or add to your flake imports, and use the `default` package output.
+
+### Install with NPM
+
 Requires Python version 3 or 2.7.
 
 Install as a development dependency in a project that uses npm packages:
@@ -45,7 +55,11 @@ Or install globally:
 
     $ npm install --global git-format-staged
 
-If you do not use npm you can copy the
+### Or just copy the script
+
+Requires Python version 3 or 2.7.
+
+If you do not use the above methods you can copy the
 [`git-format-staged`](./git-format-staged) script from this repository and
 place it in your executable path. The script is MIT-licensed - so you can check
 the script into version control in your own open source project if you wish.
