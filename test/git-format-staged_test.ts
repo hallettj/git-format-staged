@@ -132,7 +132,7 @@ test('reports descriptive error if formatter command is not found', async t => {
     '-f imaginaryformatter *.js'
   )
   t.true(exitCode > 0)
-  t.regex(stderr, /imaginaryformatter: not found/)
+  t.regex(stderr, /imaginaryformatter: .*not found/)
 })
 
 test('fails if no files are given', async t => {
