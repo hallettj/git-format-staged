@@ -20,6 +20,9 @@ jobs:
       - name: Configure Cache
         uses: DeterminateSystems/magic-nix-cache-action@main
 
+      - name: Install Npm Dependencies
+        run: nix develop --command npm ci
+
       - name: Test
         run: nix develop --command npm test
 
