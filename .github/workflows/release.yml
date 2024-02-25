@@ -1,22 +1,24 @@
-name: Release
+name: Test & Release
 on:
   push:
     branches:
+      - main
       - release
   pull_request:
 
 jobs:
   release:
-    name: Release
+    name: Test & Release
     runs-on: ubuntu-latest
     steps:
-      - name: Install Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '14.x'
-          cache: npm
-          cache-dependency-path: package-lock.json
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Configure Cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
       - name: Test
-        run: npm test
-      - name: Release
-        run: npm run semantic-release
+        run: nix develop --command npm test
+
+      - name: Release If Appropriate
+        run: nix develop --command npm run semantic-release
