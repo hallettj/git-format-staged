@@ -28,3 +28,6 @@ jobs:
 
       - name: Release If Appropriate
         run: nix develop --command npm run semantic-release
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
