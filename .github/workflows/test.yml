@@ -3,7 +3,7 @@ on:
   pull_request:
 
 jobs:
-  release:
+  test:
     name: Test
 
     runs-on: ubuntu-latest
