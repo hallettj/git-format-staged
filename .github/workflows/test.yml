@@ -1,0 +1,29 @@
+name: Test
+on:
+  pull_request:
+
+jobs:
+  release:
+    name: Test
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - 3.13
+          - 3.12
+          - 3.11
+          - 3.10
+          - 3.9
+          - 3.8
+          - 2.7
+
+    steps:
+      - name: Check Out Code
+        uses: actions/checkout@v3
+
+      - name: Install Npm Dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm test

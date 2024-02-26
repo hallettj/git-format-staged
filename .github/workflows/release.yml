@@ -1,39 +1,32 @@
-name: Test & Release
+name: Release
 on:
   push:
     branches:
       - main
       - release
-  pull_request:
 
 jobs:
   release:
-    name: Test & Release
-
+    name: Release
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version:
-          - 3.13
-          - 3.12
-          - 3.11
-          - 3.10
-          - 3.9
-          - 3.8
-          - 2.7
-
     steps:
       - name: Check Out Code
         uses: actions/checkout@v3
 
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Configure Cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
       - name: Install Npm Dependencies
-        run: npm ci
+        run: nix develop --command npm ci
 
       - name: Test
-        run: npm test
+        run: nix develop --command npm test
 
       - name: Release If Appropriate
-        run: npm run semantic-release
+        run: nix develop --command npm run semantic-release
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
