@@ -45,7 +45,7 @@ Or add to your flake imports, and use the `default` package output.
 
 ### Install with NPM
 
-Requires Python version 3 or 2.7.
+Requires Python 3.8 or later.
 
 Install as a development dependency in a project that uses npm packages:
 
@@ -57,7 +57,7 @@ Or install globally:
 
 ### Or just copy the script
 
-Requires Python version 3 or 2.7.
+Requires Python 3.8 or later.
 
 If you do not use the above methods you can copy the
 [`git-format-staged`](./git-format-staged) script from this repository and
