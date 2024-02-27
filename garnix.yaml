@@ -1,0 +1,5 @@
+# Configures builds on https://garnix.io/
+builds:
+  include:
+    - 'defaultPackage.x86_64-linux'
+    - 'checks.x86_64-linux.*'
