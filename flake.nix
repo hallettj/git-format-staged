@@ -35,7 +35,7 @@
             python312 # Python 3.12
             python311
             python310
-            python39 # Python 3.9
+            python39  # Python 3.9
             python38
           ];
         in
