@@ -1,4 +1,5 @@
-{ fetchNpmDeps
+{ name
+, fetchNpmDeps
 , git
 , gnused
 , nodejs
@@ -10,13 +11,12 @@ let
   src = ../.;
   npmDeps = fetchNpmDeps {
     inherit src;
-    name = "git-format-staged-test-deps";
+    name = "${name}-deps";
     hash = "sha256-QzQZOwtGfKvIU33Bfc5fQ/FZTTezoRnxysUXyPbKXtg=";
   };
 in
 stdenvNoCC.mkDerivation {
-  inherit src;
-  name = "test-python_v${python3.version}";
+  inherit name src;
   nativeBuildInputs = [
     git
     nodejs

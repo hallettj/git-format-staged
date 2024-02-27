@@ -28,6 +28,12 @@
         };
       });
 
+      # Run tests against maintained Python versions.
+      #
+      # Run tests with,
+      #
+      #     $ nix flake check --print-build-logs
+      #
       checks = eachSystem (pkgs: system:
         let
           python_versions = with pkgs; [
@@ -35,14 +41,14 @@
             python312 # Python 3.12
             python311
             python310
-            python39  # Python 3.9
+            python39 # Python 3.9
             python38
           ];
         in
         builtins.listToAttrs (builtins.map
-          (python3: {
-            name = "test-python_v${python3.version}";
-            value = pkgs.callPackage ./test/test.nix { inherit python3; };
+          (python3: rec {
+            name = builtins.replaceStrings [ "." ] [ "_" ] "test-python_${python3.version}";
+            value = pkgs.callPackage ./test/test.nix { inherit name python3; };
           })
           python_versions)
       );
