@@ -41,14 +41,14 @@ export async function formatStaged (
   repo: Repo,
   args: string // space-separated arguments, interpreted by shell
 ): Promise<Result> {
-  return run([BIN, args].join(' '), [], { cwd: repo.path, shell: true })
+  return run(["python3", BIN, args].join(' '), [], { cwd: repo.path, shell: true })
 }
 
 export async function formatStagedCaptureError (
   repo: Repo,
   args: string // space-separated arguments, interpreted by shell
 ): Promise<Result> {
-  return runCommand([BIN, args].join(' '), [], { cwd: repo.path, shell: true })
+  return runCommand(["python3", BIN, args].join(' '), [], { cwd: repo.path, shell: true })
 }
 
 export async function formatted (
