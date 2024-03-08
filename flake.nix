@@ -6,20 +6,15 @@
 
   outputs = { self, nixpkgs, systems }:
     let
-      eachSystem = callback: builtins.listToAttrs (builtins.map
-        (system: {
-          name = system;
-          value = callback (pkgs system) system;
-        })
-        (import systems));
+      eachSystem = callback: nixpkgs.lib.genAttrs (import systems) (system: callback (pkgs system));
       pkgs = system: nixpkgs.legacyPackages.${system};
     in
     {
-      packages = eachSystem (pkgs: system: {
+      packages = eachSystem (pkgs: {
         default = pkgs.callPackage ./packages/git-format-staged.nix { };
       });
 
-      devShells = eachSystem (pkgs: system: {
+      devShells = eachSystem (pkgs: {
         default = pkgs.mkShell {
           nativeBuildInputs = with pkgs; [
             nodejs
@@ -34,7 +29,7 @@
       #
       #     $ nix flake check --print-build-logs
       #
-      checks = eachSystem (pkgs: system:
+      checks = eachSystem (pkgs:
         let
           python_versions = with pkgs; [
             python313
