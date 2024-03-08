@@ -12,6 +12,18 @@
     {
       packages = eachSystem (pkgs: {
         default = pkgs.callPackage ./packages/git-format-staged.nix { };
+
+        # When npm dependencies change we need to update the dependencies hash
+        # in test/test.nix
+        update-npm-deps-hash = pkgs.writeShellApplication {
+          name = "update-npm-deps-hash";
+          runtimeInputs = with pkgs; [ prefetch-npm-deps nix gnused ];
+          text = ''
+            hash=$(prefetch-npm-deps package-lock.json 2>/dev/null)
+            echo "updated npm dependency hash: $hash" >&2
+            sed -i "s|sha256-[A-Za-z0-9+/=]\+|$hash|" test/test.nix
+          '';
+        };
       });
 
       devShells = eachSystem (pkgs: {
