@@ -2,6 +2,7 @@
 # npm dependencies change. This workflow runs on dependabot branches, and runs
 # a script that makes the necessary update after each dependabot push.
 name: Dependabot-post
+
 on:
   push:
     branches:
@@ -11,6 +12,7 @@ jobs:
   update_npm_deps_hash:
     name: Update NPM dependencies hash
     runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]'
     steps:
       - name: Check Out Code
         uses: actions/checkout@v3
@@ -26,8 +28,11 @@ jobs:
 
       - name: Set up Git Config
         run: |
-          git config user.name 'GitHub Actions Bot'
-          git config user.email '<>'
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # NOTE: Prefixing/appending commit messages with `[dependabot skip]`
       # allows dependabot to rebase/update the pull request, force-pushing
