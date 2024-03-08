@@ -29,7 +29,7 @@
     "git-format-staged"
   ],
   "devDependencies": {
-    "@commitlint/cli": "^8.3.5",
+    "@commitlint/cli": "^19.0.3",
     "@commitlint/config-conventional": "^8.3.4",
     "@types/fs-extra": "^8.1.0",
     "@types/tmp": "^0.1.0",
