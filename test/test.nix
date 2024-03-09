@@ -12,7 +12,7 @@ let
   npmDeps = fetchNpmDeps {
     inherit src;
     name = "${name}-deps";
-    hash = "sha256-7pVnZJFjZ1/CYT+bxdWkUI4VnQT5YtWux1++8JKlMvY=";
+    hash = "sha256-dwFVI0SQFmcClEAa4AcupOff9+iOl3FylhXL5nDZLVY=";
   };
 in
 stdenvNoCC.mkDerivation {
