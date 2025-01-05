@@ -39,7 +39,7 @@ patch step can be disabled with the `--no-update-working-tree` option.
 
 Install via the CLI:
 
-    $ nix profile add github:hallettj/git-format-staged
+    $ nix profile install github:hallettj/git-format-staged
 
 Or add to your flake imports, and use the `default` package output.
 
