@@ -33,7 +33,7 @@
     "@commitlint/config-conventional": "^19.0.3",
     "@types/fs-extra": "^8.1.0",
     "@types/tmp": "^0.1.0",
-    "ava": "^3.8.1",
+    "ava": "^6.2.0",
     "eslint": "^5.16.0",
     "fs-extra": "^9.0.0",
     "husky": "^9.0.11",
