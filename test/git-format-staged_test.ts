@@ -542,6 +542,28 @@ test('replaces filename placeholders with relative path to files in subdirectori
   )
 })
 
+test('formats a large file', async t => {
+  const r = repo(t)
+  const lines = []
+  for (let i = 0; i < 100_000; i += 1) {
+    lines.push("console.log('I will not write huge files')")
+  }
+  const content = lines.join("\n")
+  await fileInTree(
+    r,
+    'large_file.js',
+    content
+  )
+  await setContent(r, 'large_file.js', content + "\n")
+  await stage(r, 'large_file.js')
+  await formatStaged(r, '--formatter echo *.js')
+  contentIs(
+    t,
+    await getStagedContent(r, 'large_file.js'),
+    content + "\n"
+  )
+})
+
 function contentIs (t: ExecutionContext, actual: string, expected: string) {
   t.is(trim(actual), trim(expected))
 }
