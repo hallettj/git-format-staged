@@ -529,6 +529,16 @@ test('replaces multiple filename placeholders', async t => {
   contentIs(t, await getStagedContent(r, 'index.js'), 'index.js index.js')
 })
 
+test('replaces placeholder with properly escaped filename', async t => {
+  const r = repo(t)
+  await setContent(r, '; exit 1', '')
+  await stage(r, '; exit 1')
+
+  const { exitCode, stderr } = await formatStagedCaptureError(r, '--formatter "echo {}" "*"')
+  t.true(exitCode == 0)
+  t.is(stderr, '')
+})
+
 test('replaces filename placeholders with relative path to files in subdirectories', async t => {
   const r = repo(t)
   await fileInTree(r, 'test/testIndex.js', 'function test () {}')
