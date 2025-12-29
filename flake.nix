@@ -1,13 +1,26 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs-old-pythons.url = "github:NixOS/nixpkgs/73de017ef2d18a04ac4bfd0c02650007ccb31c2a";
     systems.url = "github:nix-systems/default";
   };
 
-  outputs = { self, nixpkgs, systems }:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      nixpkgs-old-pythons,
+      systems,
+    }:
     let
-      eachSystem = callback: nixpkgs.lib.genAttrs (import systems) (system: callback (pkgs system));
-      pkgs = system: nixpkgs.legacyPackages.${system};
+      overlays = [
+        (final: prev: {
+          python39 = nixpkgs-old-pythons.legacyPackages.${final.stdenv.hostPlatform.system}.python39;
+          python38 = nixpkgs-old-pythons.legacyPackages.${final.stdenv.hostPlatform.system}.python38;
+        })
+      ];
+      eachSystem = callback: nixpkgs.lib.genAttrs (import systems) (system: callback (mkPkgs system));
+      mkPkgs = system: import nixpkgs { inherit system overlays; };
     in
     {
       packages = eachSystem (pkgs: {
@@ -17,7 +30,11 @@
         # in test/test.nix
         update-npm-deps-hash = pkgs.writeShellApplication {
           name = "update-npm-deps-hash";
-          runtimeInputs = with pkgs; [ prefetch-npm-deps nix gnused ];
+          runtimeInputs = with pkgs; [
+            prefetch-npm-deps
+            nix
+            gnused
+          ];
           text = ''
             hash=$(prefetch-npm-deps package-lock.json 2>/dev/null)
             echo "updated npm dependency hash: $hash" >&2
@@ -41,9 +58,12 @@
       #
       #     $ nix flake check --print-build-logs
       #
-      checks = eachSystem (pkgs:
+      checks = eachSystem (
+        pkgs:
         let
           python_versions = with pkgs; [
+            python315
+            python314
             python313
             python312 # Python 3.12
             python311
@@ -52,12 +72,12 @@
             python38
           ];
         in
-        builtins.listToAttrs (builtins.map
-          (python3: rec {
+        builtins.listToAttrs (
+          builtins.map (python3: rec {
             name = builtins.replaceStrings [ "." ] [ "_" ] "test-python_${python3.version}";
             value = pkgs.callPackage ./test/test.nix { inherit name python3; };
-          })
-          python_versions)
+          }) python_versions
+        )
       );
     };
 }
