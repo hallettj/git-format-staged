@@ -104,9 +104,9 @@ control. So it is not necessary to explicitly exclude stuff like
 `node_modules/`.
 
 The formatter command may include a placeholder, `{}`, which will be replaced
-with the path of the file that is being formatted. This is useful if your
-formatter needs to know the file extension to determine how to format or to
-lint each file. For example:
+with the path of the file that is being formatted (with appropriate quoting).
+This is useful if your formatter needs to know the file extension to determine
+how to format or to lint each file. For example:
 
     $ git-format-staged -f 'prettier --stdin-filepath {}' '*.js' '*.css'
 

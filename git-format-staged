@@ -7,7 +7,7 @@
 # ignoring unstaged changes.
 #
 # Usage: git-format-staged [OPTION]... [FILE]...
-# Example: git-format-staged --formatter 'prettier --stdin-filepath "{}"' '*.js'
+# Example: git-format-staged --formatter 'prettier --stdin-filepath {}' '*.js'
 #
 # Tested with Python versions 3.8 - 3.13.
 #
@@ -96,7 +96,10 @@ def format_file_in_index(formatter, diff_entry, update_working_tree=True, write=
 
     return new_hash
 
-file_path_placeholder = re.compile(r'\{\}')
+# Match {}, and to avoid breaking quoting from shlex also match and remove surrounding quotes. This
+# is important for backward compatibility because previous version of git-format-staged did not use
+# shlex quoting, and required manual quoting.
+file_path_placeholder = re.compile(r"(['\"]?)\{\}(\1)")
 
 # Run formatter on a git blob identified by its hash. Writes output to a new git
 # blob, and returns the hash of the new blob.
@@ -244,12 +247,12 @@ class CustomArgumentParser(argparse.ArgumentParser):
 if __name__ == '__main__':
     parser = CustomArgumentParser(
             description='Transform staged files using a formatting command that accepts content via stdin and produces a result via stdout.',
-            epilog='Example: %(prog)s --formatter "prettier --stdin-filepath \'{}\'" "src/*.js" "test/*.js"'
+            epilog='Example: %(prog)s --formatter "prettier --stdin-filepath {}" "src/*.js" "test/*.js"'
             )
     parser.add_argument(
             '--formatter', '-f',
             required=True,
-            help='Shell command to format files, will run once per file. Occurrences of the placeholder `{}` will be replaced with a path to the file being formatted. (Example: "prettier --stdin-filepath \'{}\'")'
+            help='Shell command to format files, will run once per file. Occurrences of the placeholder `{}` will be replaced with a path to the file being formatted (with appropriate quoting). (Example: "prettier --stdin-filepath {}")'
             )
     parser.add_argument(
             '--no-update-working-tree',
@@ -259,7 +262,7 @@ if __name__ == '__main__':
     parser.add_argument(
             '--no-write',
             action='store_true',
-            help='Prevents %(prog)s from modifying staged or working tree files. You can use this option to check staged changes with a linter instead of formatting. With this option stdout from the formatter command is ignored. Example: %(prog)s --no-write -f "eslint --stdin --stdin-filename \'{}\' >&2" "*.js"'
+            help='Prevents %(prog)s from modifying staged or working tree files. You can use this option to check staged changes with a linter instead of formatting. With this option stdout from the formatter command is ignored. Example: %(prog)s --no-write -f "eslint --stdin --stdin-filename {} >&2" "*.js"'
             )
     parser.add_argument(
             '--version',
