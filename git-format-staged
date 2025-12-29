@@ -19,6 +19,7 @@ from fnmatch import fnmatch
 from gettext import gettext as _
 import os
 import re
+import shlex
 import subprocess
 import sys
 
@@ -104,7 +105,7 @@ def format_object(formatter, object_hash, file_path, verbose=False):
             ['git', 'cat-file', '-p', object_hash],
             stdout=subprocess.PIPE
             )
-    command = re.sub(file_path_placeholder, file_path, formatter)
+    command = re.sub(file_path_placeholder, shlex.quote(file_path), formatter)
     if verbose:
         info(command)
     format_content = subprocess.Popen(

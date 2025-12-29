@@ -73,7 +73,7 @@ For detailed information run:
 The command expects a shell command to run a formatter, and one or more file
 patterns to identify which files should be formatted. For example:
 
-    $ git-format-staged --formatter 'prettier --stdin-filepath "{}"' 'src/*.js'
+    $ git-format-staged --formatter 'prettier --stdin-filepath {}' 'src/*.js'
 
 That will format all files under `src/` and its subdirectories using
 `prettier`. The file pattern is tested against staged files using Python's
@@ -90,11 +90,11 @@ normal shell globbing. So if you need to match multiple patterns, you should
 pass multiple arguments with different patterns, and they will be grouped.
 So instead of e.g. `'src/**/*.{js,jsx,ts}'`, you would use:
 
-    $ git-format-staged --formatter 'prettier --stdin-filepath "{}"' 'src/*.js' 'src/*.jsx' 'src/*.ts'
+    $ git-format-staged --formatter 'prettier --stdin-filepath {}' 'src/*.js' 'src/*.jsx' 'src/*.ts'
 
 Files can be excluded by prefixing a pattern with `!`. For example:
 
-    $ git-format-staged --formatter 'prettier --stdin-filepath "{}"' '*.js' '!flow-typed/*'
+    $ git-format-staged --formatter 'prettier --stdin-filepath {}' '*.js' '!flow-typed/*'
 
 Patterns are evaluated from left-to-right: if a file matches multiple patterns
 the right-most pattern determines whether the file is included or excluded.
@@ -108,7 +108,7 @@ with the path of the file that is being formatted. This is useful if your
 formatter needs to know the file extension to determine how to format or to
 lint each file. For example:
 
-    $ git-format-staged -f 'prettier --stdin-filepath "{}"' '*.js' '*.css'
+    $ git-format-staged -f 'prettier --stdin-filepath {}' '*.js' '*.css'
 
 Do not attempt to read or write to `{}` in your formatter command! The
 placeholder exists only for referencing the file name and path.
@@ -120,7 +120,7 @@ prevent files from being committed if they do not conform to style rules. You
 can use git-format-staged with the `--no-write` option, and supply a lint
 command instead of a format command. Here is an example using ESLint:
 
-    $ git-format-staged --no-write -f 'eslint --stdin --stdin-filename "{}" >&2' 'src/*.js'
+    $ git-format-staged --no-write -f 'eslint --stdin --stdin-filename {} >&2' 'src/*.js'
 
 If this command is run in a pre-commit hook, and the lint command fails the
 commit will be aborted and error messages will be displayed. The lint command
@@ -146,7 +146,7 @@ Add a `prepare` script to install husky when running `npm install`:
 
 Add the pre-commit hook:
 
-    $ npx husky add .husky/pre-commit "git-format-staged --formatter 'prettier --stdin-filepath \"{}\"' '*.js' '*.ts'"
+    $ npx husky add .husky/pre-commit "git-format-staged --formatter 'prettier --stdin-filepath {}' '*.js' '*.ts'"
     $ git add .husky/pre-commit
 
 Once again note that the formatter command and the `'*.js'` and `'*.ts'`
