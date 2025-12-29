@@ -542,6 +542,17 @@ test('replaces filename placeholders with relative path to files in subdirectori
   )
 })
 
+test('ignores added but unstaged files', async t => {
+  const r = repo(t)
+  await setContent(r, 'a-file.txt', 'whatever')
+  await stage(r, 'a-file.txt', ['--intent-to-add'])
+
+  // Formatter should not run
+  const { exitCode, stderr } = await formatStagedCaptureError(r, '--formatter "exit 1" "*"')
+  t.true(exitCode == 0)
+  t.is(stderr, '')
+})
+
 function contentIs (t: ExecutionContext, actual: string, expected: string) {
   t.is(trim(actual), trim(expected))
 }

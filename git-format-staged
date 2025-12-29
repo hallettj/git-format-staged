@@ -37,14 +37,20 @@ def fatal(msg):
     exit(1)
 
 def format_staged_files(file_patterns, formatter, git_root, update_working_tree=True, write=True, verbose=False):
+    common_opts = [
+        '--cached',
+        '--diff-filter=AM', # select only file additions and modifications
+        '--no-renames',
+        'HEAD',
+    ]
+
     try:
-        output = subprocess.check_output([
-            'git', 'diff-index',
-            '--cached',
-            '--diff-filter=AM', # select only file additions and modifications
-            '--no-renames',
-            'HEAD'
-            ])
+        staged_files = {
+            path.decode('utf-8')
+            for path in subprocess.check_output(['git', 'diff', '--name-only'] + common_opts).splitlines()
+        }
+
+        output = subprocess.check_output(['git', 'diff-index'] + common_opts)
         for line in output.splitlines():
             entry = parse_diff(line.decode('utf-8'))
             entry_path = normalize_path(entry['src_path'], relative_to=git_root)
@@ -52,6 +58,9 @@ def format_staged_files(file_patterns, formatter, git_root, update_working_tree=
                 # Do not process symlinks
                 continue
             if not (matches_some_path(file_patterns, entry_path)):
+                continue
+            if entry['src_mode'] is None and object_is_empty(entry['dst_hash']) and entry['src_path'] not in staged_files:
+                # File is not staged, it's tracked only with `--intent-to-add` and won't get committed
                 continue
             if format_file_in_index(formatter, entry, update_working_tree=update_working_tree, write=write, verbose=verbose):
                 info('Reformatted {} with {}'.format(entry['src_path'], formatter))

@@ -98,9 +98,13 @@ export async function getStagedContent (
 /*
  * Stage the given file
  */
-export async function stage (repo: Repo, filename: Path): Promise<void> {
+export async function stage (
+  repo: Repo,
+  filename: Path,
+  args: string[] = [],
+): Promise<void> {
   const path = repoPath(repo, filename)
-  await git(repo, 'add', path)
+  await git(repo, 'add', ...args, '--', path)
 }
 
 /*
