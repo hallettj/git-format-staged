@@ -123,16 +123,15 @@ def format_object(formatter, object_hash, file_path, verbose=False):
             stdout=subprocess.PIPE
             )
 
-    get_content.stdout.close()
-    format_content.stdout.close()
+    # Read output from the final process first to avoid deadlock if intermediate processes produce
+    # large outputs that would fill pipe buffers
+    new_hash, _ = write_object.communicate()
 
     if get_content.wait() != 0:
         raise ValueError('unable to read file content from object database: ' + object_hash)
 
     if format_content.wait() != 0:
-        raise Exception('formatter exited with non-zero status') # TODO: capture stderr from format command
-
-    new_hash, err = write_object.communicate()
+        raise Exception('formatter exited with non-zero status')
 
     if write_object.returncode != 0:
         raise Exception('unable to write formatted content to object database')
