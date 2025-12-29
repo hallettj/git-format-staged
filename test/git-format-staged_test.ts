@@ -539,6 +539,38 @@ test('replaces placeholder with properly escaped filename', async t => {
   t.is(stderr, '')
 })
 
+// Placeholders are quoted using shlex, which automatically applies single quotes. Make sure that
+// quoting is preserved if the user also adds single quotes.
+test('avoids duplicating single-quoting around placeholder', async t => {
+  const filename = "needs; escaping"
+  const r = repo(t)
+  await setContent(r, filename, '')
+  await stage(r, filename)
+
+  const { stderr } = await formatStagedCaptureError(r, `--formatter "echo '{}'" "*"`)
+  t.is(stderr, '')
+  contentIs(
+    t,
+    await getStagedContent(r, filename),
+    filename
+  )
+})
+
+test('avoids duplicating double-quoting around placeholder', async t => {
+  const filename = "needs; 'escaping'"
+  const r = repo(t)
+  await setContent(r, filename, '')
+  await stage(r, filename)
+
+  const { stderr } = await formatStagedCaptureError(r, `--formatter 'echo "{}"' "*"`)
+  t.is(stderr, '')
+  contentIs(
+    t,
+    await getStagedContent(r, filename),
+    filename
+  )
+})
+
 test('replaces filename placeholders with relative path to files in subdirectories', async t => {
   const r = repo(t)
   await fileInTree(r, 'test/testIndex.js', 'function test () {}')
