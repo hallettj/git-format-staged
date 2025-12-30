@@ -36,7 +36,6 @@
     "ava": "^3.8.1",
     "eslint": "^5.16.0",
     "fs-extra": "^9.0.0",
-    "husky": "^9.0.11",
     "micromatch": "^4.0.2",
     "prettier-standard": "^9.1.1",
     "semantic-release": "^23.0.2",
@@ -55,11 +54,5 @@
     "files": [
       "test/**/*_test.ts"
     ]
-  },
-  "husky": {
-    "hooks": {
-      "commit-msg": "commitlint -e $HUSKY_GIT_PARAMS",
-      "pre-commit": "./git-format-staged --formatter prettier-standard '*.js'"
-    }
   }
 }
