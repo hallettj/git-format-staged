@@ -14,16 +14,22 @@
     }:
     let
       overlays = [
-        (final: prev: {
-          python39 = nixpkgs-old-pythons.legacyPackages.${final.stdenv.hostPlatform.system}.python39;
-          python38 = nixpkgs-old-pythons.legacyPackages.${final.stdenv.hostPlatform.system}.python38;
-        })
+        (
+          final: prev:
+          let
+            old-pkgs = nixpkgs-old-pythons.legacyPackages.${final.stdenv.hostPlatform.system};
+          in
+          {
+            python39 = old-pkgs.python39;
+            python38 = old-pkgs.python38;
+          }
+        )
       ];
-      eachSystem = callback: nixpkgs.lib.genAttrs (import systems) (system: callback (mkPkgs system));
+      perSystem = callback: nixpkgs.lib.genAttrs (import systems) (system: callback (mkPkgs system));
       mkPkgs = system: import nixpkgs { inherit system overlays; };
     in
     {
-      packages = eachSystem (pkgs: {
+      packages = perSystem (pkgs: {
         default = pkgs.callPackage ./packages/git-format-staged.nix { };
 
         # When npm dependencies change we need to update the dependencies hash
@@ -43,7 +49,7 @@
         };
       });
 
-      devShells = eachSystem (pkgs: {
+      devShells = perSystem (pkgs: {
         default = pkgs.mkShell {
           nativeBuildInputs = with pkgs; [
             nodejs
@@ -58,7 +64,7 @@
       #
       #     $ nix flake check --print-build-logs
       #
-      checks = eachSystem (
+      checks = perSystem (
         pkgs:
         let
           python_versions = with pkgs; [
