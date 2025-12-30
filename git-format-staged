@@ -17,7 +17,6 @@ from __future__ import print_function
 import argparse
 from fnmatch import fnmatch
 from gettext import gettext as _
-import os
 import re
 import shlex
 import subprocess
@@ -37,7 +36,7 @@ def fatal(msg):
     print('{}: error: {}'.format(PROG, msg), file=sys.stderr)
     exit(1)
 
-def format_staged_files(file_patterns, formatter, git_root, update_working_tree=True, write=True, verbose=False):
+def format_staged_files(file_patterns, formatter, update_working_tree=True, write=True, verbose=False):
     common_opts = [
         '--cached',
         '--diff-filter=AM', # select only file additions and modifications
@@ -54,11 +53,10 @@ def format_staged_files(file_patterns, formatter, git_root, update_working_tree=
         output = subprocess.check_output(['git', 'diff-index'] + common_opts)
         for line in output.splitlines():
             entry = parse_diff(line.decode('utf-8'))
-            entry_path = normalize_path(entry['src_path'], relative_to=git_root)
             if entry['dst_mode'] == '120000':
                 # Do not process symlinks
                 continue
-            if not (matches_some_path(file_patterns, entry_path)):
+            if not (matches_some_path(file_patterns, entry['src_path'])):
                 continue
             if entry['src_mode'] is None and object_is_empty(entry['dst_hash']) and entry['src_path'] not in staged_files:
                 # File is not staged, it's tracked only with `--intent-to-add` and won't get committed
@@ -204,21 +202,11 @@ zeroed_pat = re.compile(r'^0+$')
 def unless_zeroed(s):
     return s if not zeroed_pat.match(s) else None
 
-def get_git_root():
-    return subprocess.check_output(
-            ['git', 'rev-parse', '--show-toplevel']
-            ).decode('utf-8').rstrip()
-
-def normalize_path(p, relative_to=None):
-    return os.path.abspath(
-            os.path.join(relative_to, p) if relative_to else p
-            )
-
 def matches_some_path(patterns, target):
     is_match = False
     for signed_pattern in patterns:
         (is_pattern_positive, pattern) = from_signed_pattern(signed_pattern)
-        if fnmatch(target, normalize_path(pattern)):
+        if fnmatch(target, pattern):
             is_match = is_pattern_positive
     return is_match
 
@@ -284,7 +272,6 @@ if __name__ == '__main__':
     format_staged_files(
             file_patterns=files,
             formatter=vars(args)['formatter'],
-            git_root=get_git_root(),
             update_working_tree=not vars(args)['no_update_working_tree'],
             write=not vars(args)['no_write'],
             verbose=vars(args)['verbose']
