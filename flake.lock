@@ -1,5 +1,42 @@
 {
   "nodes": {
+    "flake-utils": {
+      "locked": {
+        "lastModified": 1638122382,
+        "narHash": "sha256-sQzZzAbvKEqN9s0bzWuYmRaA03v40gaJ4+iL1LXjaeI=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "74f7e4319258e287b0f9cb95426c9853b282730b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "git-hooks": {
+      "inputs": {
+        "flake-utils": "flake-utils",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1766934887,
+        "narHash": "sha256-zXB/psKqAm57fqqJm1Bd8W7uZYnjKNbqg/1jBV9+3Bg=",
+        "owner": "ysndr",
+        "repo": "nix-git-hooks",
+        "rev": "d48aa6c86f9ded84e342e60ebebf8f973a891aa9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ysndr",
+        "repo": "nix-git-hooks",
+        "rev": "d48aa6c86f9ded84e342e60ebebf8f973a891aa9",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1766902085,
@@ -34,6 +71,7 @@
     },
     "root": {
       "inputs": {
+        "git-hooks": "git-hooks",
         "nixpkgs": "nixpkgs",
         "nixpkgs-old-pythons": "nixpkgs-old-pythons",
         "systems": "systems"

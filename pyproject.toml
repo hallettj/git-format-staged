@@ -1,0 +1,6 @@
+[project]
+name = "git-format-staged"
+version = "0.0.0-development"
+
+[tool.black]
+target_version = ['py38', 'py39', 'py310', 'py311', 'py312', 'py313']

@@ -3,6 +3,11 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs-old-pythons.url = "github:NixOS/nixpkgs/73de017ef2d18a04ac4bfd0c02650007ccb31c2a";
     systems.url = "github:nix-systems/default";
+
+    git-hooks = {
+      url = "github:ysndr/nix-git-hooks/d48aa6c86f9ded84e342e60ebebf8f973a891aa9";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -11,26 +16,30 @@
       nixpkgs,
       nixpkgs-old-pythons,
       systems,
+      git-hooks,
     }:
     let
       overlays = [
         (
           final: prev:
           let
-            old-pkgs = nixpkgs-old-pythons.legacyPackages.${final.stdenv.hostPlatform.system};
+            old-pkgs = nixpkgs-old-pythons.legacyPackages.${system final};
           in
           {
             python39 = old-pkgs.python39;
             python38 = old-pkgs.python38;
           }
         )
+        git-hooks.overlay
       ];
       perSystem = callback: nixpkgs.lib.genAttrs (import systems) (system: callback (mkPkgs system));
       mkPkgs = system: import nixpkgs { inherit system overlays; };
+      system = pkgs: pkgs.stdenv.hostPlatform.system;
     in
     {
-      packages = perSystem (pkgs: {
-        default = pkgs.callPackage ./packages/git-format-staged.nix { };
+      packages = perSystem (pkgs: rec {
+        git-format-staged = pkgs.callPackage ./packages/git-format-staged.nix { };
+        default = git-format-staged;
 
         # When npm dependencies change we need to update the dependencies hash
         # in test/test.nix
@@ -47,16 +56,61 @@
             sed -i "s|sha256-[A-Za-z0-9+/=]\+|$hash|" test/test.nix
           '';
         };
-      });
 
-      devShells = perSystem (pkgs: {
-        default = pkgs.mkShell {
-          nativeBuildInputs = with pkgs; [
-            nodejs
-            python3
+        lint-commit-message = pkgs.writeShellApplication {
+          name = "lint-commit-message";
+          runtimeInputs = [ pkgs.commitlint ];
+          text = ''
+            commitlint --edit
+          '';
+        };
+
+        format-staged-changes = pkgs.writeShellApplication {
+          name = "format-staged-changes";
+          runtimeInputs = [
+            self.packages.${system pkgs}.default
+            pkgs.black
+            pkgs.nixfmt
+            pkgs.nodejs
           ];
+          text = ''
+            git-format-staged --formatter 'nixfmt --filename {}' '*.nix'
+            git-format-staged --formatter 'black --stdin-filename {} -' '*.py' 'git-format-staged'
+            git-format-staged --formatter 'prettier --stdin-filepath {}' '*.json' '*.yml'
+            git-format-staged --formatter 'npx prettier-standard' '*.js' '*.ts'
+          '';
         };
       });
+
+      devShells = perSystem (
+        pkgs:
+        let
+          hook-installer = pkgs.git-hook-installer {
+            commit-msg = [ self.packages.${system pkgs}.lint-commit-message ];
+            pre-commit = [ self.packages.${system pkgs}.format-staged-changes ];
+          };
+        in
+        {
+          default = pkgs.mkShell {
+            packages = [
+              hook-installer
+              pkgs.git-hook-uninstaller
+              pkgs.black
+              pkgs.nixfmt
+              pkgs.nodejs
+              pkgs.prettier
+            ];
+
+            inputsFrom = [
+              self.packages.${system pkgs}.default
+            ];
+
+            shellHook = ''
+              install-git-hooks
+            '';
+          };
+        }
+      );
 
       # Run tests against maintained Python versions.
       #
