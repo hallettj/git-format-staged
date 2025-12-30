@@ -155,7 +155,7 @@ test('can be run in a subdirectory', async t => {
   await fileInTree(r, 'test/testIndex.js', 'function test () {}')
   await setContent(r, 'test/testIndex.js', 'function test() { return true; }')
   await stage(r, 'test/testIndex.js')
-  await formatStaged(subdir(r, 'test'), '-f prettier-standard *.js')
+  await formatStaged(subdir(r, 'test'), '-f prettier-standard "*.js"')
   contentIs(
     t,
     await getContent(r, 'test/testIndex.js'),
@@ -534,7 +534,10 @@ test('replaces placeholder with properly escaped filename', async t => {
   await setContent(r, '; exit 1', '')
   await stage(r, '; exit 1')
 
-  const { exitCode, stderr } = await formatStagedCaptureError(r, '--formatter "echo {}" "*"')
+  const { exitCode, stderr } = await formatStagedCaptureError(
+    r,
+    '--formatter "echo {}" "*"'
+  )
   t.true(exitCode == 0)
   t.is(stderr, '')
 })
@@ -542,18 +545,17 @@ test('replaces placeholder with properly escaped filename', async t => {
 // Placeholders are quoted using shlex, which automatically applies single quotes. Make sure that
 // quoting is preserved if the user also adds single quotes.
 test('avoids duplicating single-quoting around placeholder', async t => {
-  const filename = "needs; escaping"
+  const filename = 'needs; escaping'
   const r = repo(t)
   await setContent(r, filename, '')
   await stage(r, filename)
 
-  const { stderr } = await formatStagedCaptureError(r, `--formatter "echo '{}'" "*"`)
-  t.is(stderr, '')
-  contentIs(
-    t,
-    await getStagedContent(r, filename),
-    filename
+  const { stderr } = await formatStagedCaptureError(
+    r,
+    `--formatter "echo '{}'" "*"`
   )
+  t.is(stderr, '')
+  contentIs(t, await getStagedContent(r, filename), filename)
 })
 
 test('avoids duplicating double-quoting around placeholder', async t => {
@@ -562,13 +564,12 @@ test('avoids duplicating double-quoting around placeholder', async t => {
   await setContent(r, filename, '')
   await stage(r, filename)
 
-  const { stderr } = await formatStagedCaptureError(r, `--formatter 'echo "{}"' "*"`)
-  t.is(stderr, '')
-  contentIs(
-    t,
-    await getStagedContent(r, filename),
-    filename
+  const { stderr } = await formatStagedCaptureError(
+    r,
+    `--formatter 'echo "{}"' "*"`
   )
+  t.is(stderr, '')
+  contentIs(t, await getStagedContent(r, filename), filename)
 })
 
 test('replaces filename placeholders with relative path to files in subdirectories', async t => {
@@ -590,7 +591,10 @@ test('ignores added but unstaged files', async t => {
   await stage(r, 'a-file.txt', ['--intent-to-add'])
 
   // Formatter should not run
-  const { exitCode, stderr } = await formatStagedCaptureError(r, '--formatter "exit 1" "*"')
+  const { exitCode, stderr } = await formatStagedCaptureError(
+    r,
+    '--formatter "exit 1" "*"'
+  )
   t.true(exitCode == 0)
   t.is(stderr, '')
 })
