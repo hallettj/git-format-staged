@@ -9,7 +9,7 @@
 # Usage: git-format-staged [OPTION]... [FILE]...
 # Example: git-format-staged --formatter 'prettier --stdin-filepath {}' '*.js'
 #
-# Tested with Python versions 3.8 - 3.13.
+# Tested with Python versions 3.8 - 3.15.
 #
 # Original author: Jesse Hallett <jesse@sitr.us>
 
