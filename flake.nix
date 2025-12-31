@@ -75,7 +75,7 @@
           ];
           text = ''
             git-format-staged --formatter 'nixfmt --filename {}' '*.nix'
-            git-format-staged --formatter 'black --stdin-filename {} -' '*.py' 'git-format-staged'
+            git-format-staged --formatter 'black --quiet --stdin-filename {} -' '*.py' 'git-format-staged'
             git-format-staged --formatter 'prettier --stdin-filepath {}' '*.json' '*.yml'
             git-format-staged --formatter 'npx prettier-standard' '*.js' '*.ts'
           '';
