@@ -159,6 +159,8 @@ def format_object(
     # Read output from the final process first to avoid deadlock if intermediate processes produce
     # large outputs that would fill pipe buffers
     new_hash, _err = write_object.communicate()
+    format_content.communicate()
+    get_content.communicate()
 
     if get_content.wait() != 0:
         raise ValueError(
