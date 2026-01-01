@@ -20,6 +20,7 @@ from fnmatch import fnmatch
 from gettext import gettext as _
 import re
 import shlex
+import signal
 import subprocess
 import sys
 from typing import NoReturn, Protocol, cast
@@ -32,6 +33,10 @@ PROG = sys.argv[0]
 
 def info(msg: str):
     print(msg, file=sys.stdout)
+
+
+def info_stderr(msg: str):
+    print(msg, file=sys.stderr)
 
 
 def warn(msg: str):
@@ -144,33 +149,79 @@ def format_object(
     get_content = subprocess.Popen(
         ["git", "cat-file", "-p", object_hash], stdout=subprocess.PIPE
     )
+
     command = re.sub(file_path_placeholder, shlex.quote(file_path), formatter)
     if verbose:
-        info(command)
+        info_stderr(command)
     format_content = subprocess.Popen(
         command, shell=True, stdin=get_content.stdout, stdout=subprocess.PIPE
     )
+
+    # Close the parent process reference to stdout, leaving only references in the child processes.
+    # This way if format_content terminates while get_content is still running, get_content will be
+    # terminated with a SIGPIPE signal.
+    get_content.stdout.close()  # pyright: ignore[reportOptionalMemberAccess]
+
     write_object = subprocess.Popen(
         ["git", "hash-object", "-w", "--stdin"],
         stdin=format_content.stdout,
         stdout=subprocess.PIPE,
     )
 
-    # Read output from the final process first to avoid deadlock if intermediate processes produce
-    # large outputs that would fill pipe buffers
-    new_hash, _err = write_object.communicate()
-    format_content.communicate()
-    get_content.communicate()
+    # Same deal as with get_content.stdout.close()
+    format_content.stdout.close()  # pyright: ignore[reportOptionalMemberAccess]
 
-    if get_content.wait() != 0:
-        raise ValueError(
-            "unable to read file content from object database: " + object_hash
+    # Read output from the last process in the pipe, and block until that process has completed.
+    # It's important to block on the last process completing before waiting for the other sub
+    # processes to finish.
+    new_hash, _err = write_object.communicate()
+
+    # The first two pipe processes should have completed by now. Block to verify that we have exit
+    # statuses from them.
+    try:
+        get_content_exit_status = get_content.wait(timeout=5)
+        format_content_exit_status = format_content.wait(timeout=5)
+    except subprocess.TimeoutExpired as exception:
+        raise Exception(
+            "the formatter command did not terminate as expected"
+        ) from exception
+
+    # An error from format_content is most relevant to the user, so prioritize displaying this error
+    # message in case multiple things went wrong.
+    #
+    # We're not doing any special SIGPIPE handling here because we expect that write_object will
+    # consume all output from format_content. If it doesn't that implies that some file content got
+    # lost, and that needs to be a fatal error.
+    if format_content_exit_status != 0:
+        raise Exception(
+            f"formatter exited with non-zero status ({format_content_exit_status}) while processing {file_path}"
         )
 
-    if format_content.wait() != 0:
-        raise Exception("formatter exited with non-zero status")
+    # If the formatter exited before reading all input then get_content might have been terminated
+    # by a SIGPIPE signal. This is probably incorrect behavior from the formatter command, but is
+    # allowed by design (for now). So we emit a warning, but will not fail.
+    if get_content_exit_status == -signal.SIGPIPE:
+        warn(
+            f"the formatter command exited before reading all content from {file_path}"
+        )
+    elif get_content_exit_status != 0:
+        if verbose:
+            info_stderr(
+                f"non-zero exit status from `git cat-file -p {object_hash}`\n"
+                + f"exit status: {get_content_exit_status}\n"
+                + f"file path: {file_path}\n"
+            )
+        raise ValueError(
+            f"unable to read file content for {file_path} from object database."
+        )
 
     if write_object.returncode != 0:
+        if verbose:
+            info_stderr(
+                f"non-zero exit status from `git hash-object -w --stdin`\n"
+                + f"exit status: {write_object.returncode}\n"
+                + f"file path: {file_path}\n"
+            )
         raise Exception("unable to write formatted content to object database")
 
     return new_hash.decode("utf-8").rstrip()

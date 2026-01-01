@@ -116,6 +116,41 @@ test('fails if formatter command is not quoted', async t => {
   t.regex(stderr, /Do you need to quote your formatter command\?/)
 })
 
+// See https://github.com/hallettj/git-format-staged/issues/88
+test('terminates successfully and warns if formatter does not read all input and input is large enough to fill pipe', async t => {
+  const r = repo(t)
+  const content = 'I will not break when processing large files.\n'.repeat(2000)
+  await setContent(r, 'large_file', content)
+  await stage(r, 'large_file')
+  // The echo command ignores stdin
+  const { exitCode, stderr } = await formatStagedCaptureError(
+    r,
+    '--formatter echo large_file'
+  )
+  t.is(exitCode, 0, 'exited successfully')
+  t.regex(
+    stderr,
+    /warning: the formatter command exited before reading all content.*/
+  )
+  // The failure mode for this test is a timeout
+})
+
+test('correctly formats a large file', async t => {
+  const r = repo(t)
+  const content = 'I will not break when processing large files.\n'.repeat(
+    1_000_000
+  )
+  await setContent(r, 'large_file', content)
+  await stage(r, 'large_file')
+  // cat passes stdin directly to stdout - add a small delay to make sure pipes
+  // fill up
+  await formatStaged(r, '--formatter "sleep 0.1s; cat" large_file')
+  t.true(
+    (await getContent(r, 'large_file')) == content,
+    'content was written verbatim'
+  )
+})
+
 test('reports descriptive error if formatter command is not found', async t => {
   const r = repo(t)
   await setContent(
@@ -531,15 +566,12 @@ test('replaces multiple filename placeholders', async t => {
 
 test('replaces placeholder with properly escaped filename', async t => {
   const r = repo(t)
-  await setContent(r, '; exit 1', '')
-  await stage(r, '; exit 1')
+  const filename = '; exit 1'
+  await setContent(r, filename, '')
+  await stage(r, filename)
 
-  const { exitCode, stderr } = await formatStagedCaptureError(
-    r,
-    '--formatter "echo {}" "*"'
-  )
-  t.true(exitCode == 0)
-  t.is(stderr, '')
+  await formatStaged(r, '--formatter "echo {}" "*"')
+  contentIs(t, await getStagedContent(r, filename), filename)
 })
 
 // Placeholders are quoted using shlex, which automatically applies single quotes. Make sure that
@@ -550,11 +582,7 @@ test('avoids duplicating single-quoting around placeholder', async t => {
   await setContent(r, filename, '')
   await stage(r, filename)
 
-  const { stderr } = await formatStagedCaptureError(
-    r,
-    `--formatter "echo '{}'" "*"`
-  )
-  t.is(stderr, '')
+  await formatStaged(r, `--formatter "echo '{}'" "*"`)
   contentIs(t, await getStagedContent(r, filename), filename)
 })
 
@@ -564,11 +592,7 @@ test('avoids duplicating double-quoting around placeholder', async t => {
   await setContent(r, filename, '')
   await stage(r, filename)
 
-  const { stderr } = await formatStagedCaptureError(
-    r,
-    `--formatter 'echo "{}"' "*"`
-  )
-  t.is(stderr, '')
+  await formatStaged(r, `--formatter 'echo "{}"' "*"`)
   contentIs(t, await getStagedContent(r, filename), filename)
 })
 
