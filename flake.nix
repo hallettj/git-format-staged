@@ -93,6 +93,7 @@
         {
           default = pkgs.mkShell {
             packages = [
+              self.packages.${system pkgs}.update-npm-deps-hash
               hook-installer
               pkgs.git-hook-uninstaller
               pkgs.black

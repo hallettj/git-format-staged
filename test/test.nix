@@ -1,10 +1,11 @@
-{ name
-, fetchNpmDeps
-, git
-, gnused
-, nodejs
-, python3
-, stdenvNoCC
+{
+  name,
+  fetchNpmDeps,
+  git,
+  gnused,
+  nodejs,
+  python3,
+  stdenvNoCC,
 }:
 
 let
@@ -12,7 +13,7 @@ let
   npmDeps = fetchNpmDeps {
     inherit src;
     name = "${name}-deps";
-    hash = "sha256-Pc7DFAkSP2jXxiG2KgZNuWBTcVn6LuGp191AZTJo7fM=";
+    hash = "sha256-cCxfJD6Lvtl3S8Yo3KHBhYH/xVJ+Op4AR2umDJzQSQQ=";
   };
 in
 stdenvNoCC.mkDerivation {
