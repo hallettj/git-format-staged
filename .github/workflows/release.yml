@@ -4,6 +4,7 @@ on:
     branches:
       - main
       - release
+      - "[0-9]+.x" # maintenance branches
 
 jobs:
   release:
