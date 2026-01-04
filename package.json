@@ -4,6 +4,7 @@
   "description": "Git command to transform staged files according to a command that accepts file content on stdin and produces output on stdout.",
   "scripts": {
     "test": "ava",
+    "prepare": "update-npm-deps-hash || true",
     "prepublishOnly": "sed -i \"s/\\$VERSION/$npm_package_version/\" git-format-staged",
     "semantic-release": "semantic-release"
   },
