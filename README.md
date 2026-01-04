@@ -128,30 +128,55 @@ option to tell it to read content from `stdin` instead of reading files from
 disk, and messages from `eslint` are redirected to `stderr` (using the `>&2`
 notation) so that you can see them.
 
-### Set up a pre-commit hook with Husky
+### Set up a pre-commit hook
 
-Follow these steps to automatically format all Javascript files on commit in
-a project that uses npm.
+A git pre-commit hook runs automatically whenever you make a commit, before your
+editor opens to write a commit message. If formatting fails with a non-zero exit
+status it will cancel the commit, requiring you to fix the problem before trying
+again. (You can always skip a pre-commit hook by running `git commit
+--no-verify`.) But in most cases you will have correctly formatted files at all
+times, without having to think about it again after setup. Whenever a file is
+changed as a result of formatting on commit you will see a message in the output
+from `git commit`.
 
-Install git-format-staged, husky, and a formatter (I use `prettier`):
+There are a number of options for setting up a git pre-commit hook depending on
+the software ecosystem you are working with.
 
-    $ npm install --save-dev git-format-staged husky prettier
+#### Write a pre-commit hook manually
 
-Add a `prepare` script to install husky when running `npm install`:
+You can write a hook manually by creating the file `.git/hooks/pre-commit`, and
+making it executable. A hook set up this way will _not_ automatically propagate
+to other clones, so every collaborator will have to do this themselves.
 
-    $ npm set-script prepare "husky install"
-    $ npm run prepare
+#### Nix devShell
 
-Add the pre-commit hook:
+If you use a Nix devShell you can use [nix-git-hooks][] to help set up
+a pre-commit hook automatically. You can either automatically install hooks for
+everyone who uses the devShell, or provide a command that collaborators can run
+to easily opt in to hooks. Take a look at how this repo uses nix-git-hooks in
+[flake.nix](./flake.nix).
 
-    $ npx husky add .husky/pre-commit "git-format-staged --formatter 'prettier --stdin-filepath {}' '*.js' '*.ts'"
-    $ git add .husky/pre-commit
+[nix-git-hooks]: https://github.com/ysndr/nix-git-hooks
 
-Once again note that the formatter command and the `'*.js'` and `'*.ts'`
-patterns are quoted!
+#### Npm, yarn, pnpm, or bun
 
-That's it! Whenever a file is changed as a result of formatting on commit you
-will see a message in the output from `git commit`.
+[Husky][] will automatically install git hooks for all project collaborators
+after running package manager commands.
+
+[Husky]: https://typicode.github.io/husky/get-started.html
+
+#### Rust with Cargo
+
+[cargo-husky][] is like Husky, but for Rust projects.
+
+[cargo-husky]: https://crates.io/crates/cargo-husky
+
+#### and more!
+
+See more hook management options in [awesome-git][] and [awesome-git-hooks][].
+
+[awesome-git]: https://github.com/dictcp/awesome-git?tab=readme-ov-file#hook-management.
+[awesome-git-hooks]: https://github.com/compscilauren/awesome-git-hooks?tab=readme-ov-file#tools
 
 ## Comparisons to similar utilities
 
