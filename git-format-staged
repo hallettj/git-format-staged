@@ -157,19 +157,19 @@ def format_object(
         command, shell=True, stdin=get_content.stdout, stdout=subprocess.PIPE
     )
 
-    # Close the parent process reference to stdout, leaving only references in the child processes.
-    # This way if format_content terminates while get_content is still running, get_content will be
-    # terminated with a SIGPIPE signal.
-    get_content.stdout.close()  # pyright: ignore[reportOptionalMemberAccess]
-
     write_object = subprocess.Popen(
         ["git", "hash-object", "-w", "--stdin"],
         stdin=format_content.stdout,
         stdout=subprocess.PIPE,
     )
 
-    # Same deal as with get_content.stdout.close()
+    # Close the parent process reference to stdout, leaving only references in the child processes.
+    # This way if the downstream process terminates while format_content is still running,
+    # format_content will be terminated with a SIGPIPE signal.
     format_content.stdout.close()  # pyright: ignore[reportOptionalMemberAccess]
+
+    # On the other hand we don't close get_content.stdout() so that we can check if there is unread
+    # data left after the formatter has finished.
 
     # Read output from the last process in the pipe, and block until that process has completed.
     # It's important to block on the last process completing before waiting for the other sub
@@ -179,7 +179,9 @@ def format_object(
     # The first two pipe processes should have completed by now. Block to verify that we have exit
     # statuses from them.
     try:
-        get_content_exit_status = get_content.wait(timeout=5)
+        # Use communicate() to check for any unread output from get_content.
+        get_content_unread_stdout, _ = get_content.communicate(timeout=5)
+        get_content.stdout.close()  # pyright: ignore[reportOptionalMemberAccess]
         format_content_exit_status = format_content.wait(timeout=5)
     except subprocess.TimeoutExpired as exception:
         raise Exception(
@@ -188,10 +190,6 @@ def format_object(
 
     # An error from format_content is most relevant to the user, so prioritize displaying this error
     # message in case multiple things went wrong.
-    #
-    # We're not doing any special SIGPIPE handling here because we expect that write_object will
-    # consume all output from format_content. If it doesn't that implies that some file content got
-    # lost, and that needs to be a fatal error.
     if format_content_exit_status != 0:
         raise Exception(
             f"formatter exited with non-zero status ({format_content_exit_status}) while processing {file_path}"
@@ -200,15 +198,23 @@ def format_object(
     # If the formatter exited before reading all input then get_content might have been terminated
     # by a SIGPIPE signal. This is probably incorrect behavior from the formatter command, but is
     # allowed by design (for now). So we emit a warning, but will not fail.
-    if get_content_exit_status == -signal.SIGPIPE:
+
+    # If there was unread output from get_content that's an indication that the formatter command is
+    # probably not configured correctly. But program design allows the formatter command do do what
+    # it wants. So this is a warning, not a hard error.
+    #
+    # A SIGPIPE termination to get_content would also indicate unread output. This should not
+    # happen, but it doesn't hurt to check.
+    if len(get_content_unread_stdout) > 0 or get_content.returncode == -signal.SIGPIPE:
         warn(
             f"the formatter command exited before reading all content from {file_path}"
         )
-    elif get_content_exit_status != 0:
+
+    if get_content.returncode != 0 and get_content.returncode != -signal.SIGPIPE:
         if verbose:
             info_stderr(
                 f"non-zero exit status from `git cat-file -p {object_hash}`\n"
-                + f"exit status: {get_content_exit_status}\n"
+                + f"exit status: {get_content.returncode}\n"
                 + f"file path: {file_path}\n"
             )
         raise ValueError(

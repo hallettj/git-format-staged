@@ -135,6 +135,23 @@ test('terminates successfully and warns if formatter does not read all input and
   // The failure mode for this test is a timeout
 })
 
+test('terminates successfully and warns if formatter does not read all input and input is *not* large enough to fill pipe', async t => {
+  const r = repo(t)
+  await setContent(r, 'small_file', 'hello, world')
+  await stage(r, 'small_file')
+  // The echo command ignores stdin
+  const { exitCode, stderr } = await formatStagedCaptureError(
+    r,
+    '--formatter echo small_file'
+  )
+  t.is(exitCode, 0, 'exited successfully')
+  t.regex(
+    stderr,
+    /warning: the formatter command exited before reading all content.*/
+  )
+  // The failure mode for this test is a timeout
+})
+
 test('correctly formats a large file', async t => {
   const r = repo(t)
   const content = 'I will not break when processing large files.\n'.repeat(
