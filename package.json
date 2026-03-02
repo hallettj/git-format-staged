@@ -39,7 +39,7 @@
     "fs-extra": "^9.0.0",
     "micromatch": "^4.0.2",
     "prettier-standard": "^9.1.1",
-    "semantic-release": "^23.0.2",
+    "semantic-release": "^25.0.3",
     "strip-indent": "^3.0.0",
     "tmp": "0.2.4",
     "ts-node": "^8.9.1",
