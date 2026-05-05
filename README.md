@@ -53,6 +53,14 @@ Or install globally:
 
     $ npm install --global git-format-staged
 
+### Install with Homebrew
+
+Install globally using [homebrew]:
+
+    $ brew install git-format-staged
+
+[homebrew]: https://brew.sh/
+
 ### Or just copy the script
 
 Requires Python 3.8 or later.
