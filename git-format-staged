@@ -28,6 +28,9 @@ from typing import NoReturn, Protocol, cast
 
 # The string $VERSION is replaced during the publish process.
 VERSION = "$VERSION"
+
+# SIGPIPE is not available on Windows
+SIGPIPE: int | None = getattr(signal, "SIGPIPE", None)
 PROG = sys.argv[0]
 
 
@@ -205,12 +208,16 @@ def format_object(
     #
     # A SIGPIPE termination to get_content would also indicate unread output. This should not
     # happen, but it doesn't hurt to check.
-    if len(get_content_unread_stdout) > 0 or get_content.returncode == -signal.SIGPIPE:
+    if len(get_content_unread_stdout) > 0 or (
+        SIGPIPE is not None and get_content.returncode == -SIGPIPE
+    ):
         warn(
             f"the formatter command exited before reading all content from {file_path}"
         )
 
-    if get_content.returncode != 0 and get_content.returncode != -signal.SIGPIPE:
+    if get_content.returncode != 0 and (
+        SIGPIPE is None or get_content.returncode != -SIGPIPE
+    ):
         if verbose:
             info_stderr(
                 f"non-zero exit status from `git cat-file -p {object_hash}`\n"
