@@ -76,8 +76,8 @@ def format_staged_files(
         output = subprocess.check_output(["git", "diff-index"] + common_opts)
         for line in output.splitlines():
             entry = DiffIndexEntry(line.decode("utf-8"))
-            if entry.dst_mode == "120000":
-                # Do not process symlinks
+            if entry.dst_mode in ("120000", "160000"):
+                # Do not process symlinks or submodules
                 continue
             if not (matches_some_path(file_patterns, entry.src_path)):
                 continue
