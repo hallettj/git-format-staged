@@ -89,14 +89,14 @@ test('fails with non-zero exit status if formatter fails', async t => {
     r,
     '-f prettier-standard "*.js"'
   )
-  t.true(exitCode > 0)
+  t.true((exitCode ?? -1) > 0)
   t.regex(stderr, /SyntaxError: Unexpected token/)
 })
 
 test('fails if no formatter command is given', async t => {
   const r = repo(t)
   const { exitCode, stderr } = await formatStagedCaptureError(r, '*.js')
-  t.true(exitCode > 0)
+  t.true((exitCode ?? -1) > 0)
   // The versions of argparse in Python 2 and Python 3 format this error message
   // differently.
   t.regex(
@@ -111,7 +111,7 @@ test('fails if formatter command is not quoted', async t => {
     r,
     '-f prettier --stdin-filepath "{}" *.js'
   )
-  t.true(exitCode > 0)
+  t.true((exitCode ?? -1) > 0)
   t.regex(stderr, /unrecognized arguments: --stdin-filepath/)
   t.regex(stderr, /Do you need to quote your formatter command\?/)
 })
@@ -127,7 +127,7 @@ test('terminates successfully and warns if formatter does not read all input and
     r,
     '--formatter echo large_file'
   )
-  t.is(exitCode, 0, 'exited successfully')
+  t.is(exitCode ?? -1, 0, 'exited successfully')
   t.regex(
     stderr,
     /warning: the formatter command exited before reading all content.*/
@@ -144,7 +144,7 @@ test('terminates successfully and warns if formatter does not read all input and
     r,
     '--formatter echo small_file'
   )
-  t.is(exitCode, 0, 'exited successfully')
+  t.is(exitCode ?? -1, 0, 'exited successfully')
   t.regex(
     stderr,
     /warning: the formatter command exited before reading all content.*/
@@ -183,7 +183,7 @@ test('reports descriptive error if formatter command is not found', async t => {
     r,
     '-f imaginaryformatter *.js'
   )
-  t.true(exitCode > 0)
+  t.true((exitCode ?? -1) > 0)
   t.regex(stderr, /imaginaryformatter: .*not found/)
 })
 
@@ -193,7 +193,7 @@ test('fails if no files are given', async t => {
     r,
     '-f prettier-standard'
   )
-  t.true(exitCode > 0)
+  t.true((exitCode ?? -1) > 0)
   // The versions of argparse in Python 2 and Python 3 format this error message
   // differently.
   t.regex(
@@ -537,7 +537,7 @@ test('fails with non-zero exit status if formatter fails and `--no-write` is set
     r,
     '--no-write -f prettier-standard "*.js"'
   )
-  t.true(exitCode > 0)
+  t.true((exitCode ?? -1) > 0)
   t.regex(stderr, /SyntaxError: Unexpected token/)
 })
 
@@ -561,7 +561,7 @@ test('messages from formatter command can be redirected to stderr', async t => {
     r,
     '--no-write -f "eslint --stdin --no-eslintrc >&2" "*.js"'
   )
-  t.true(exitCode > 0)
+  t.true((exitCode ?? -1) > 0)
   t.regex(stderr, /Parsing error: Unexpected token/)
 })
 
@@ -636,7 +636,7 @@ test('ignores added but unstaged files', async t => {
     r,
     '--formatter "exit 1" "*"'
   )
-  t.true(exitCode == 0)
+  t.true(exitCode === 0)
   t.is(stderr, '')
 })
 
