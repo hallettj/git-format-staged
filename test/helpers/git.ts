@@ -1,17 +1,17 @@
 import { ChildProcess, SpawnOptionsWithoutStdio, spawn } from 'child_process'
 import * as fs from 'fs-extra'
 import { dirname, join, resolve } from 'path'
-import * as tmp from 'tmp'
+import * as os from 'os'
 
 export type Result = {
-  exitCode: number,
+  exitCode: number | null,
   stdout: string,
   stderr: string
 }
 
 export interface Repo {
-  path: Path,
-  cleanup: () => void
+  path: Path;
+  cleanup: () => void;
 }
 export type Path = string
 
@@ -29,7 +29,7 @@ export function cleanup (repo: Repo) {
   repo.cleanup()
 }
 
-export function subdir(repo: Repo, path: Path): Repo {
+export function subdir (repo: Repo, path: Path): Repo {
   return { ...repo, path: repoPath(repo, path) }
 }
 
@@ -41,14 +41,20 @@ export async function formatStaged (
   repo: Repo,
   args: string // space-separated arguments, interpreted by shell
 ): Promise<Result> {
-  return run(["python3", BIN, args].join(' '), [], { cwd: repo.path, shell: true })
+  return run(['python3', BIN, args].join(' '), [], {
+    cwd: repo.path,
+    shell: true
+  })
 }
 
 export async function formatStagedCaptureError (
   repo: Repo,
   args: string // space-separated arguments, interpreted by shell
 ): Promise<Result> {
-  return runCommand(["python3", BIN, args].join(' '), [], { cwd: repo.path, shell: true })
+  return runCommand(['python3', BIN, args].join(' '), [], {
+    cwd: repo.path,
+    shell: true
+  })
 }
 
 export async function formatted (
@@ -101,7 +107,7 @@ export async function getStagedContent (
 export async function stage (
   repo: Repo,
   filename: Path,
-  args: string[] = [],
+  args: string[] = []
 ): Promise<void> {
   const path = repoPath(repo, filename)
   await git(repo, 'add', ...args, '--', path)
@@ -139,8 +145,8 @@ function runCommand (
 
 function getResult (p: ChildProcess): Promise<Result> {
   return new Promise((resolve, reject) => {
-    var stdout = ''
-    var stderr = ''
+    let stdout = ''
+    let stderr = ''
     p.stdout?.on('data', buf => {
       stdout += buf.toString()
     })
@@ -161,20 +167,18 @@ function getResult (p: ChildProcess): Promise<Result> {
 }
 
 async function rejectOnNonzeroExit (r: Result): Promise<Result> {
-  if (r.exitCode !== 0) {
+  if (r.exitCode == null || r.exitCode !== 0) {
     throw new Error(`command failed:\n\n${r.stderr}`)
   }
   return r
 }
 
-function tmpDir (): Promise<{ path: Path, cleanup: () => void }> {
-  return new Promise((resolve, reject) => {
-    tmp.dir({ unsafeCleanup: true }, (err, path, cleanup) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve({ path, cleanup })
-      }
-    })
-  })
+async function tmpDir (): Promise<{ path: Path, cleanup: () => void }> {
+  const path = await fs.mkdtemp(join(os.tmpdir(), 'git-format-staged-'))
+  return {
+    path,
+    cleanup: () => {
+      fs.remove(path).catch(() => {})
+    }
+  }
 }

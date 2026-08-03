@@ -30,10 +30,9 @@
     "git-format-staged"
   ],
   "devDependencies": {
-    "@commitlint/cli": "^21.0.0",
-    "@commitlint/config-conventional": "^21.0.0",
-    "@types/fs-extra": "^8.1.0",
-    "@types/tmp": "^0.1.0",
+    "@commitlint/cli": "^20.0.0",
+    "@commitlint/config-conventional": "^20.0.0",
+    "@types/fs-extra": "^11.0.4",
     "ava": "^3.8.1",
     "eslint": "^5.16.0",
     "fs-extra": "^9.0.0",
@@ -41,9 +40,8 @@
     "prettier-standard": "^9.1.1",
     "semantic-release": "^25.0.8",
     "strip-indent": "^3.0.0",
-    "tmp": "0.2.6",
-    "ts-node": "^8.9.1",
-    "typescript": "^3.8.3"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   },
   "ava": {
     "extensions": [

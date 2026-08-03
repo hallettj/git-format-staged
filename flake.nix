@@ -1,7 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgs-old-pythons.url = "github:NixOS/nixpkgs/73de017ef2d18a04ac4bfd0c02650007ccb31c2a";
+    nixpkgs-old-pythons.url = "github:NixOS/nixpkgs/c0b0e0fddf73fd517c3471e546c0df87a42d53f4";
     systems.url = "github:nix-systems/default";
 
     git-hooks = {
@@ -26,8 +26,7 @@
             old-pkgs = nixpkgs-old-pythons.legacyPackages.${system final};
           in
           {
-            python39 = old-pkgs.python39;
-            python38 = old-pkgs.python38;
+            python310 = old-pkgs.python310;
           }
         )
         git-hooks.overlay
@@ -128,9 +127,7 @@
             python313
             python312 # Python 3.12
             python311
-            python310
-            python39 # Python 3.9
-            python38
+            python310 # Python 3.10
           ];
         in
         builtins.listToAttrs (
