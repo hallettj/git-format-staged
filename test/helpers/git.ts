@@ -1,5 +1,9 @@
-import { ChildProcess, SpawnOptionsWithoutStdio, spawn } from 'child_process'
-import * as fs from 'fs-extra'
+import {
+  type ChildProcess,
+  type SpawnOptionsWithoutStdio,
+  spawn
+} from 'child_process'
+import fs from 'fs-extra'
 import { dirname, join, resolve } from 'path'
 import * as os from 'os'
 
@@ -15,7 +19,7 @@ export interface Repo {
 }
 export type Path = string
 
-const BIN = resolve(join(__dirname, '..', '..', 'git-format-staged'))
+const BIN = resolve(join(import.meta.dirname, '..', '..', 'git-format-staged'))
 
 export async function testRepo (): Promise<Repo> {
   const repo = await tmpDir()
