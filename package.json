@@ -30,8 +30,8 @@
     "git-format-staged"
   ],
   "devDependencies": {
-    "@commitlint/cli": "^19.0.3",
-    "@commitlint/config-conventional": "^19.0.3",
+    "@commitlint/cli": "^21.0.0",
+    "@commitlint/config-conventional": "^21.0.0",
     "@types/fs-extra": "^8.1.0",
     "@types/tmp": "^0.1.0",
     "ava": "^3.8.1",
@@ -39,7 +39,7 @@
     "fs-extra": "^9.0.0",
     "micromatch": "^4.0.2",
     "prettier-standard": "^9.1.1",
-    "semantic-release": "^23.0.2",
+    "semantic-release": "^25.0.8",
     "strip-indent": "^3.0.0",
     "tmp": "0.2.6",
     "ts-node": "^8.9.1",
