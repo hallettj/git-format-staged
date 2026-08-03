@@ -1,7 +1,7 @@
-import test, { ExecutionContext } from 'ava'
+import test, { type ExecutionContext } from 'ava'
 import stripIndent from 'strip-indent'
 import {
-  Repo,
+  type Repo,
   cleanup,
   fileInTree,
   formatStaged,
@@ -14,7 +14,7 @@ import {
   stage,
   subdir,
   testRepo
-} from './helpers/git'
+} from './helpers/git.ts'
 
 test.beforeEach(async t => {
   const repo = await testRepo()
@@ -559,7 +559,7 @@ test('messages from formatter command can be redirected to stderr', async t => {
   await stage(r, 'index.js')
   const { exitCode, stderr } = await formatStagedCaptureError(
     r,
-    '--no-write -f "eslint --stdin --no-eslintrc >&2" "*.js"'
+    '--no-write -f "eslint --stdin --no-config-lookup >&2" "*.js"'
   )
   t.true((exitCode ?? -1) > 0)
   t.regex(stderr, /Parsing error: Unexpected token/)
