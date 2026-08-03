@@ -14,7 +14,7 @@
   "main": "./no-main.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/hallettj/git-format-staged.git"
+    "url": "git+https://github.com/hallettj/git-format-staged.git"
   },
   "keywords": [
     "git",
