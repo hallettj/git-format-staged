@@ -3,6 +3,8 @@ on:
   push:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
+    branches:
+      - fix-flakehub-release-automation
   workflow_dispatch:
     inputs:
       tag:
@@ -25,5 +27,5 @@ jobs:
         with:
           visibility: "public"
           name: "hallettj/git-format-staged"
-          tag: "${{ inputs.tag }}"
+          tag: "v4.0.2"
           include-output-paths: true
