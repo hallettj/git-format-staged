@@ -1,9 +1,10 @@
 name: "Publish releases to FlakeHub"
 on:
-  pull_request:
   push:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
+    branches:
+      - fix-flakehub-release-automation
   workflow_dispatch:
     inputs:
       tag:
