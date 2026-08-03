@@ -2,7 +2,6 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs-old-pythons.url = "github:NixOS/nixpkgs/c0b0e0fddf73fd517c3471e546c0df87a42d53f4";
-    systems.url = "github:nix-systems/default";
 
     git-hooks = {
       url = "github:ysndr/nix-git-hooks/d48aa6c86f9ded84e342e60ebebf8f973a891aa9";
@@ -15,10 +14,14 @@
       self,
       nixpkgs,
       nixpkgs-old-pythons,
-      systems,
       git-hooks,
     }:
     let
+      systems = [
+        "aarch64-darwin"
+        "aarch64-linux"
+        "x86_64-linux"
+      ];
       overlays = [
         (
           final: prev:
@@ -31,7 +34,7 @@
         )
         git-hooks.overlay
       ];
-      perSystem = callback: nixpkgs.lib.genAttrs (import systems) (system: callback (mkPkgs system));
+      perSystem = callback: nixpkgs.lib.genAttrs systems (system: callback (mkPkgs system));
       mkPkgs = system: import nixpkgs { inherit system overlays; };
       system = pkgs: pkgs.stdenv.hostPlatform.system;
     in
